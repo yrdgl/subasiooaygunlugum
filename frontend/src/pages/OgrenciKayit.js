@@ -1,21 +1,20 @@
 // frontend/src/pages/OgrenciKayit.js
 import React, { useState } from 'react';
-import { 
-  FaUser, FaLock, FaEnvelope, FaIdCard, 
+iimport { 
+  FaUser, FaLock, FaIdCard, 
   FaSchool, FaMoon, FaArrowLeft 
 } from 'react-icons/fa';
 
 function OgrenciKayit() {
   const [formData, setFormData] = useState({
-    ad: '',
-    soyad: '',
-    sinif: '5',
-    sube: 'A',
-    ogrenciNo: '',
-    email: '',
-    sifre: '',
-    sifreTekrar: ''
-  });
+  ad: '',
+  soyad: '',
+  sinif: '5',
+  sube: 'A',
+  ogrenciNo: '', // ÖNEMLİ: BU ZORUNLU OLACAK
+  sifre: '',
+  sifreTekrar: ''
+});
 
   const siniflar = ['1', '2', '3', '4', '5', '6', '7', '8'];
   const subeler = ['A', 'B', 'C', 'D', 'E', 'F'];
@@ -159,75 +158,61 @@ function OgrenciKayit() {
                     </div>
                   </div>
 
-                  {/* Öğrenci No */}
-                  <div>
-                    <label className="block text-gray-300 mb-2">
-                      <FaIdCard className="inline mr-2" />
-                      Öğrenci Numarası (Opsiyonel)
-                    </label>
-                    <input
-                      type="text"
-                      name="ogrenciNo"
-                      value={formData.ogrenciNo}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-yellow-500 transition-colors"
-                      placeholder="12345"
-                    />
-                  </div>
-
-                  {/* Email */}
-                  <div>
-                    <label className="block text-gray-300 mb-2">
-                      <FaEnvelope className="inline mr-2" />
-                      E-posta Adresi
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-yellow-500 transition-colors"
-                      placeholder="ali@okul.edu.tr"
-                      required
-                    />
-                  </div>
-
-                  {/* Şifre */}
+                  {/* Öğrenci No - ZORUNLU VE ÖNEMLİ */}
+<div>
+  <label className="block text-gray-300 mb-2">
+    <FaIdCard className="inline mr-2 text-yellow-400" />
+    ÖĞRENCİ NUMARAN *
+  </label>
+  <input
+    type="text"
+    name="ogrenciNo"
+    value={formData.ogrenciNo}
+    onChange={handleChange}
+    className="w-full px-4 py-3 bg-gray-900 border-2 border-yellow-500/50 rounded-lg text-white focus:outline-none focus:border-yellow-500 transition-colors text-lg font-bold"
+    placeholder="15, 23, 101 gibi"
+    required
+  />
+  <p className="text-gray-400 text-sm mt-2">
+    Bu numara ile giriş yapacaksın. Unutma!
+  </p>
+</div>
+                  
                   <div className="grid md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-gray-300 mb-2">
-                        <FaLock className="inline mr-2" />
-                        Şifre
-                      </label>
-                      <input
-                        type="password"
-                        name="sifre"
-                        value={formData.sifre}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-yellow-500 transition-colors"
-                        placeholder="••••••••"
-                        required
-                        minLength="6"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-gray-300 mb-2">
-                        <FaLock className="inline mr-2" />
-                        Şifre Tekrar
-                      </label>
-                      <input
-                        type="password"
-                        name="sifreTekrar"
-                        value={formData.sifreTekrar}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-yellow-500 transition-colors"
-                        placeholder="••••••••"
-                        required
-                        minLength="6"
-                      />
-                    </div>
-                  </div>
+  <div>
+    <label className="block text-gray-300 mb-2">
+      <FaLock className="inline mr-2" />
+      Şifre (min 4 karakter)
+    </label>
+    <input
+      type="password"
+      name="sifre"
+      value={formData.sifre}
+      onChange={handleChange}
+      className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-yellow-500 transition-colors"
+      placeholder="••••"
+      required
+      minLength="4"  // <- 4 karakter yap
+    />
+  </div>
+  
+  <div>
+    <label className="block text-gray-300 mb-2">
+      <FaLock className="inline mr-2" />
+      Şifre Tekrar
+    </label>
+    <input
+      type="password"
+      name="sifreTekrar"
+      value={formData.sifreTekrar}
+      onChange={handleChange}
+      className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-yellow-500 transition-colors"
+      placeholder="••••"
+      required
+      minLength="4"  // <- 4 karakter yap
+    />
+  </div>
+</div>
 
                   {/* Kayıt Butonu */}
                   <div className="pt-4">
