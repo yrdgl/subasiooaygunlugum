@@ -3,7 +3,8 @@ import './App.css';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
 import HomePage from './pages/HomePage';
-import JournalPage from './pages/DailyJournals'; // BU SATIRI GERİ EKLE
+import JournalPage from './pages/DailyJournals';
+import OgrenciKayit from './pages/OgrenciKayit'; // YENİ EKLENDİ
 
 function App() {
   return (
@@ -12,7 +13,8 @@ function App() {
         <Header />
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/candemirin-ay-gunlugu" element={<JournalPage />} /> {/* BU SATIRI GERİ EKLE */}
+          <Route path="/candemirin-ay-gunlugu" element={<JournalPage />} />
+          <Route path="/OgrenciKayit" element={<OgrenciKayit />} /> {/* YENİ EKLENDİ */}
         </Routes>
       </BrowserRouter>
     </div>
