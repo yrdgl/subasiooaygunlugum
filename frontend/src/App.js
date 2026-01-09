@@ -6,6 +6,7 @@ import HomePage from './pages/HomePage';
 import JournalPage from './pages/DailyJournals';
 import OgrenciKayit from './pages/OgrenciKayit';
 import OgrenciGiris from './pages/OgrenciGiris'; // YENİ EKLENDİ
+mport OgrenciDashboard from './pages/OgrenciDashboard';
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
           <Route path="/candemirin-ay-gunlugu" element={<JournalPage />} />
           <Route path="/OgrenciKayit" element={<OgrenciKayit />} />
           <Route path="/OgrenciGiris" element={<OgrenciGiris />} /> {/* YENİ EKLENDİ */}
+<Route path="/OgrenciDashboard" element={<OgrenciDashboard />} />
         </Routes>
       </BrowserRouter>
     </div>
