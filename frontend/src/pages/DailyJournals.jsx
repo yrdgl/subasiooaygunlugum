@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { dailyJournals, observationNotes } from '../data/mockData';
 
+// TEST: Console'a yazdır
+console.log('TEST - dailyJournals:', dailyJournals);
+console.log('TEST - observationNotes:', observationNotes);
+
 const JournalPage = () => {
   const [selectedJournal, setSelectedJournal] = useState(dailyJournals[0]);
   const [activeView, setActiveView] = useState('gunluk');
