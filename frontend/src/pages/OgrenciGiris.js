@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { FaUser, FaLock, FaArrowLeft, FaMoon } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 function OgrenciGiris() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     sifre: ''
@@ -19,7 +20,14 @@ function OgrenciGiris() {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log('Giriş denemesi:', formData);
-    alert('Firebase eklenince çalışacak! Şimdilik demo modda.');
+    
+    // Demo giriş kontrolü
+    if (formData.email === 'test@ogrenci.com' && formData.sifre === '123456') {
+      alert('Demo giriş başarılı! Öğrenci paneline yönlendiriliyorsunuz...');
+      navigate('/OgrenciDashboard');
+    } else {
+      alert('Firebase eklenince gerçek giriş çalışacak! Şimdilik demo girişi kullanın:\nEmail: test@ogrenci.com\nŞifre: 123456');
+    }
   };
 
   return (
@@ -38,7 +46,7 @@ function OgrenciGiris() {
             </div>
             <Link 
               to="/" 
-              className="flex items-center text-gray-300 hover:text-white transition-colors"
+              className="flex items-center text-gray-300 hover:text-white transition-colors px-4 py-2 hover:bg-gray-800 rounded-lg"
             >
               <FaArrowLeft className="mr-2" />
               Ana Sayfaya Dön
@@ -74,7 +82,7 @@ function OgrenciGiris() {
                   value={formData.email}
                   onChange={handleChange}
                   className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-yellow-500 transition-colors"
-                  placeholder="ogrenci@okul.edu.tr"
+                  placeholder="test@ogrenci.com"
                   required
                 />
               </div>
@@ -91,7 +99,7 @@ function OgrenciGiris() {
                   value={formData.sifre}
                   onChange={handleChange}
                   className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-yellow-500 transition-colors"
-                  placeholder="••••••••"
+                  placeholder="123456"
                   required
                   minLength="6"
                 />
@@ -100,7 +108,7 @@ function OgrenciGiris() {
               {/* Giriş Butonu */}
               <button
                 type="submit"
-                className="w-full py-4 bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold rounded-lg hover:from-yellow-600 hover:to-orange-600 transition-all transform hover:scale-[1.02]"
+                className="w-full py-4 bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold rounded-lg hover:from-yellow-600 hover:to-orange-600 transition-all transform hover:scale-[1.02] active:scale-95"
               >
                 🔓 GİRİŞ YAP
               </button>
@@ -112,7 +120,7 @@ function OgrenciGiris() {
                 Hesabın yok mu?{' '}
                 <Link 
                   to="/OgrenciKayit" 
-                  className="text-yellow-400 hover:text-yellow-300 font-semibold"
+                  className="text-yellow-400 hover:text-yellow-300 font-semibold underline"
                 >
                   Kayıt Ol
                 </Link>
@@ -121,12 +129,8 @@ function OgrenciGiris() {
               <p className="text-gray-400">
                 Öğretmen misin?{' '}
                 <Link 
-                  to="#" 
-                  className="text-blue-400 hover:text-blue-300 font-semibold"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    alert('Öğretmen girişi yakında eklenecek!');
-                  }}
+                  to="/OgretmenGiris" 
+                  className="text-blue-400 hover:text-blue-300 font-semibold underline"
                 >
                   Öğretmen Girişi
                 </Link>
@@ -140,14 +144,30 @@ function OgrenciGiris() {
               🎯 Demo Modu
             </h3>
             <p className="text-gray-300">
-              Şu anda Firebase bağlantısı yok. Tasarımı test ediyoruz.
-              Firebase ekleyince gerçek giriş çalışacak.
+              Firebase eklenince gerçek giriş çalışacak. Şimdilik demo girişi kullanabilirsiniz.
             </p>
             <div className="mt-4 p-3 bg-gray-900/50 rounded-lg">
               <p className="text-gray-400 text-sm">
-                <strong>Demo giriş:</strong> test@ogrenci.com / 123456
+                <strong>Demo giriş bilgileri:</strong><br />
+                Email: <span className="text-yellow-300">test@ogrenci.com</span><br />
+                Şifre: <span className="text-yellow-300">123456</span>
               </p>
             </div>
+          </div>
+
+          {/* Demo Giriş Butonu */}
+          <div className="mt-6">
+            <button
+              onClick={() => {
+                setFormData({
+                  email: 'test@ogrenci.com',
+                  sifre: '123456'
+                });
+              }}
+              className="w-full py-3 bg-gradient-to-r from-green-900/50 to-blue-900/50 text-green-300 font-semibold rounded-lg hover:from-green-900/70 hover:to-blue-900/70 transition-colors border border-green-700/50"
+            >
+              📋 Demo Bilgilerini Doldur
+            </button>
           </div>
         </div>
       </main>

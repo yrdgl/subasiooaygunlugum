@@ -1,20 +1,21 @@
-// frontend/src/pages/OgrenciKayit.js
 import React, { useState } from 'react';
-iimport { 
+import { 
   FaUser, FaLock, FaIdCard, 
   FaSchool, FaMoon, FaArrowLeft 
 } from 'react-icons/fa';
+import { Link, useNavigate } from 'react-router-dom';
 
 function OgrenciKayit() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
-  ad: '',
-  soyad: '',
-  sinif: '5',
-  sube: 'A',
-  ogrenciNo: '', // ÖNEMLİ: BU ZORUNLU OLACAK
-  sifre: '',
-  sifreTekrar: ''
-});
+    ad: '',
+    soyad: '',
+    sinif: '5',
+    sube: 'A',
+    ogrenciNo: '',
+    sifre: '',
+    sifreTekrar: ''
+  });
 
   const siniflar = ['1', '2', '3', '4', '5', '6', '7', '8'];
   const subeler = ['A', 'B', 'C', 'D', 'E', 'F'];
@@ -29,8 +30,44 @@ function OgrenciKayit() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    // Şifre kontrolü
+    if (formData.sifre !== formData.sifreTekrar) {
+      alert('Şifreler eşleşmiyor!');
+      return;
+    }
+    
+    // Şifre uzunluğu kontrolü
+    if (formData.sifre.length < 4) {
+      alert('Şifre en az 4 karakter olmalıdır!');
+      return;
+    }
+    
+    // Öğrenci numarası kontrolü
+    if (!formData.ogrenciNo.trim()) {
+      alert('Öğrenci numarası zorunludur!');
+      return;
+    }
+    
     console.log('Kayıt verisi:', formData);
-    alert('Kayıt başarılı! (Firebase ekleyince çalışacak)');
+    alert('Demo kayıt başarılı! Öğrenci paneline yönlendiriliyorsunuz...');
+    
+    // Demo modda kayıt olunca dashboard'a yönlendir
+    setTimeout(() => {
+      navigate('/OgrenciDashboard');
+    }, 1500);
+  };
+
+  const handleDemoKayit = () => {
+    setFormData({
+      ad: 'Ali',
+      soyad: 'Yılmaz',
+      sinif: '5',
+      sube: 'A',
+      ogrenciNo: '12345',
+      sifre: '1234',
+      sifreTekrar: '1234'
+    });
   };
 
   return (
@@ -47,13 +84,13 @@ function OgrenciKayit() {
                 Ay Günlüğü
               </h1>
             </div>
-            <a 
-              href="/" 
-              className="flex items-center text-gray-300 hover:text-white transition-colors"
+            <Link 
+              to="/" 
+              className="flex items-center text-gray-300 hover:text-white transition-colors px-4 py-2 hover:bg-gray-800 rounded-lg"
             >
               <FaArrowLeft className="mr-2" />
               Ana Sayfaya Dön
-            </a>
+            </Link>
           </div>
         </div>
       </header>
@@ -159,66 +196,77 @@ function OgrenciKayit() {
                   </div>
 
                   {/* Öğrenci No - ZORUNLU VE ÖNEMLİ */}
-<div>
-  <label className="block text-gray-300 mb-2">
-    <FaIdCard className="inline mr-2 text-yellow-400" />
-    ÖĞRENCİ NUMARAN *
-  </label>
-  <input
-    type="text"
-    name="ogrenciNo"
-    value={formData.ogrenciNo}
-    onChange={handleChange}
-    className="w-full px-4 py-3 bg-gray-900 border-2 border-yellow-500/50 rounded-lg text-white focus:outline-none focus:border-yellow-500 transition-colors text-lg font-bold"
-    placeholder="15, 23, 101 gibi"
-    required
-  />
-  <p className="text-gray-400 text-sm mt-2">
-    Bu numara ile giriş yapacaksın. Unutma!
-  </p>
-</div>
+                  <div>
+                    <label className="block text-gray-300 mb-2">
+                      <FaIdCard className="inline mr-2 text-yellow-400" />
+                      ÖĞRENCİ NUMARAN *
+                    </label>
+                    <input
+                      type="text"
+                      name="ogrenciNo"
+                      value={formData.ogrenciNo}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 bg-gray-900 border-2 border-yellow-500/50 rounded-lg text-white focus:outline-none focus:border-yellow-500 transition-colors text-lg font-bold"
+                      placeholder="15, 23, 101 gibi"
+                      required
+                    />
+                    <p className="text-gray-400 text-sm mt-2">
+                      Bu numara ile giriş yapacaksın. Unutma!
+                    </p>
+                  </div>
                   
                   <div className="grid md:grid-cols-2 gap-6">
-  <div>
-    <label className="block text-gray-300 mb-2">
-      <FaLock className="inline mr-2" />
-      Şifre (min 4 karakter)
-    </label>
-    <input
-      type="password"
-      name="sifre"
-      value={formData.sifre}
-      onChange={handleChange}
-      className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-yellow-500 transition-colors"
-      placeholder="••••"
-      required
-      minLength="4"  // <- 4 karakter yap
-    />
-  </div>
-  
-  <div>
-    <label className="block text-gray-300 mb-2">
-      <FaLock className="inline mr-2" />
-      Şifre Tekrar
-    </label>
-    <input
-      type="password"
-      name="sifreTekrar"
-      value={formData.sifreTekrar}
-      onChange={handleChange}
-      className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-yellow-500 transition-colors"
-      placeholder="••••"
-      required
-      minLength="4"  // <- 4 karakter yap
-    />
-  </div>
-</div>
+                    <div>
+                      <label className="block text-gray-300 mb-2">
+                        <FaLock className="inline mr-2" />
+                        Şifre (min 4 karakter)
+                      </label>
+                      <input
+                        type="password"
+                        name="sifre"
+                        value={formData.sifre}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-yellow-500 transition-colors"
+                        placeholder="••••"
+                        required
+                        minLength="4"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-gray-300 mb-2">
+                        <FaLock className="inline mr-2" />
+                        Şifre Tekrar
+                      </label>
+                      <input
+                        type="password"
+                        name="sifreTekrar"
+                        value={formData.sifreTekrar}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-yellow-500 transition-colors"
+                        placeholder="••••"
+                        required
+                        minLength="4"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Demo Kayıt Butonu */}
+                  <div className="pt-2">
+                    <button
+                      type="button"
+                      onClick={handleDemoKayit}
+                      className="w-full py-3 bg-gradient-to-r from-green-900/50 to-blue-900/50 text-green-300 font-semibold rounded-lg hover:from-green-900/70 hover:to-blue-900/70 transition-colors border border-green-700/50 mb-4"
+                    >
+                      📋 Demo Bilgilerini Doldur
+                    </button>
+                  </div>
 
                   {/* Kayıt Butonu */}
-                  <div className="pt-4">
+                  <div className="pt-2">
                     <button
                       type="submit"
-                      className="w-full py-4 bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold rounded-lg hover:from-yellow-600 hover:to-orange-600 transition-all transform hover:scale-[1.02]"
+                      className="w-full py-4 bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold rounded-lg hover:from-yellow-600 hover:to-orange-600 transition-all transform hover:scale-[1.02] active:scale-95"
                     >
                       🌙 KAYIT OL VE AY GÜNLÜĞÜNE BAŞLA
                     </button>
@@ -228,16 +276,12 @@ function OgrenciKayit() {
                   <div className="text-center pt-4">
                     <p className="text-gray-400">
                       Zaten hesabın var mı?{' '}
-                      <a 
-                        href="#" 
-                        className="text-yellow-400 hover:text-yellow-300 font-semibold"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          alert('Giriş sayfası yakında eklenecek!');
-                        }}
+                      <Link 
+                        to="/OgrenciGiris" 
+                        className="text-yellow-400 hover:text-yellow-300 font-semibold underline"
                       >
                         Giriş Yap
-                      </a>
+                      </Link>
                     </p>
                   </div>
                 </form>
@@ -280,7 +324,21 @@ function OgrenciKayit() {
                 </div>
               </div>
 
-                          </div>
+              {/* Demo Mod Bilgisi */}
+              <div className="bg-yellow-900/30 rounded-xl p-6 border border-yellow-700/50">
+                <h3 className="text-xl font-bold text-white mb-3">
+                  🎯 Demo Modu
+                </h3>
+                <p className="text-gray-300 text-sm">
+                  Şu an demo moddasın. Gerçek kayıt için Firebase eklenecek.
+                </p>
+                <div className="mt-3 p-3 bg-gray-900/50 rounded-lg">
+                  <p className="text-gray-400 text-xs">
+                    Demo kayıt yapınca direkt dashboard'a yönlendirileceksin.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </main>
