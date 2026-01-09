@@ -49,11 +49,11 @@ const HomePage = () => {
             Ay Hakkında Her Şey
           </h1>
           <p className="text-xl md:text-2xl text-gray-300 mb-12 text-center max-w-3xl">
-            Gecenin en güzel arkadaşımız Ay hakkında merak ettiğin her şeyi öğren!
+            Gecenin en güzel arkadaşı Ay hakkında merak ettiğin her şeyi öğren!
           </p>
           
           {/* Current Moon Phase Info */}
-          <div className="bg-[#1a1f3a]/60 backdrop-blur-xl rounded-2xl border border-white/10 px-8 py-4 mb-16">
+          <div className="bg-[#1a1f3a]/60 backdrop-blur-xl rounded-2xl border border-white/10 px-8 py-4 mb-8">
             <div className="flex items-center gap-4">
               <div className="text-5xl">🌕</div>
               <div>
@@ -62,6 +62,41 @@ const HomePage = () => {
               </div>
             </div>
           </div>
+
+          {/* 🎯 ÖĞRENCİ PLATFORMU BUTONLARI - BURAYA EKLENDİ */}
+          <div className="w-full max-w-2xl mx-auto mt-8 mb-16">
+            <div className="bg-gradient-to-r from-[#1a1f3a]/80 to-[#0a0e27]/80 backdrop-blur-xl rounded-2xl border border-white/10 p-8">
+              <h2 className="text-3xl font-bold text-center mb-6 text-white">
+                🌙 Ay Günlüğü Öğrenci Platformu
+              </h2>
+              <p className="text-gray-300 text-center mb-8">
+                Ay gözlem günlüğüne katıl, her akşam ayın durumunu kaydet!
+              </p>
+              
+              <div className="flex flex-col md:flex-row gap-4 justify-center">
+                <a 
+                  href="/OgrenciKayit"
+                  className="flex-1 py-4 px-6 bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold rounded-xl hover:from-yellow-600 hover:to-orange-600 transition-all transform hover:scale-[1.02] text-center"
+                >
+                  📝 Öğrenci Kayıt
+                </a>
+                
+                <a 
+                  href="/OgrenciGiris"
+                  className="flex-1 py-4 px-6 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold rounded-xl hover:from-blue-600 hover:to-purple-600 transition-all transform hover:scale-[1.02] text-center"
+                >
+                  🔓 Öğrenci Giriş
+                </a>
+              </div>
+              
+              <div className="mt-6 text-center">
+                <p className="text-gray-400 text-sm">
+                  Öğretmenler için giriş sayfası yakında eklenecek
+                </p>
+              </div>
+            </div>
+          </div>
+          {/* 🎯 BUTONLAR BURADA BİTİYOR */}
         </div>
 
         {/* Tab Navigation */}
