@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { FaUser, FaLock, FaArrowLeft, FaMoon } from 'react-icons/fa';
+import { FaIdCard, FaLock, FaArrowLeft, FaMoon } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 
 function OgrenciGiris() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    email: '',
+    ogrenciNo: '',
     sifre: ''
   });
 
@@ -19,15 +19,36 @@ function OgrenciGiris() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    // Validasyon
+    if (!formData.ogrenciNo.trim()) {
+      alert('Öğrenci numarası gerekli!');
+      return;
+    }
+    
+    if (formData.sifre.length < 4) {
+      alert('Şifre en az 4 karakter olmalıdır!');
+      return;
+    }
+    
     console.log('Giriş denemesi:', formData);
     
-    // Demo giriş kontrolü
-    if (formData.email === 'test@ogrenci.com' && formData.sifre === '123456') {
-      alert('Demo giriş başarılı! Öğrenci paneline yönlendiriliyorsunuz...');
-      navigate('/OgrenciDashboard');
+    // Demo giriş kontrolü - Öğrenci No: 12345, Şifre: 1234
+    if (formData.ogrenciNo === '12345' && formData.sifre === '1234') {
+      alert('Giriş başarılı! Öğrenci paneline yönlendiriliyorsunuz...');
+      setTimeout(() => {
+        navigate('/OgrenciDashboard');
+      }, 1000);
     } else {
-      alert('Firebase eklenince gerçek giriş çalışacak! Şimdilik demo girişi kullanın:\nEmail: test@ogrenci.com\nŞifre: 123456');
+      alert('Demo giriş için:\nÖğrenci No: 12345\nŞifre: 1234\n\n(Firebase eklenince gerçek giriş çalışacak)');
     }
+  };
+
+  const handleDemoGiris = () => {
+    setFormData({
+      ogrenciNo: '12345',
+      sifre: '1234'
+    });
   };
 
   return (
@@ -63,35 +84,40 @@ function OgrenciGiris() {
               🌙 Öğrenci Girişi
             </h1>
             <p className="text-gray-300">
-              Ay günlüğüne devam etmek için giriş yap
+              Öğrenci numaran ve şifren ile giriş yap
             </p>
           </div>
 
           {/* Giriş Formu */}
           <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 border border-gray-700">
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Email */}
+              {/* Öğrenci Numarası */}
               <div>
                 <label className="block text-gray-300 mb-2">
-                  <FaUser className="inline mr-2" />
-                  E-posta Adresi
+                  <FaIdCard className="inline mr-2 text-yellow-400" />
+                  ÖĞRENCİ NUMARASI *
                 </label>
                 <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
+                  type="text"
+                  name="ogrenciNo"
+                  value={formData.ogrenciNo}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-yellow-500 transition-colors"
-                  placeholder="test@ogrenci.com"
+                  className="w-full px-4 py-3 bg-gray-900 border-2 border-yellow-500/50 rounded-lg text-white focus:outline-none focus:border-yellow-500 transition-colors text-lg font-bold"
+                  placeholder="12345"
                   required
+                  pattern="\d+"
+                  title="Sadece rakam giriniz"
                 />
+                <p className="text-gray-400 text-sm mt-2">
+                  Öğretmeninin verdiği öğrenci numaran
+                </p>
               </div>
 
               {/* Şifre */}
               <div>
                 <label className="block text-gray-300 mb-2">
                   <FaLock className="inline mr-2" />
-                  Şifre
+                  ŞİFRE * (min 4 karakter)
                 </label>
                 <input
                   type="password"
@@ -99,10 +125,21 @@ function OgrenciGiris() {
                   value={formData.sifre}
                   onChange={handleChange}
                   className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-yellow-500 transition-colors"
-                  placeholder="123456"
+                  placeholder="••••"
                   required
-                  minLength="6"
+                  minLength="4"
                 />
+              </div>
+
+              {/* Demo Giriş Butonu */}
+              <div>
+                <button
+                  type="button"
+                  onClick={handleDemoGiris}
+                  className="w-full py-3 bg-gradient-to-r from-green-900/50 to-blue-900/50 text-green-300 font-semibold rounded-lg hover:from-green-900/70 hover:to-blue-900/70 transition-colors border border-green-700/50 mb-4"
+                >
+                  📋 Demo Giriş Bilgilerini Doldur
+                </button>
               </div>
 
               {/* Giriş Butonu */}
@@ -135,6 +172,16 @@ function OgrenciGiris() {
                   Öğretmen Girişi
                 </Link>
               </p>
+              
+              <p className="text-gray-400 text-sm">
+                Şifreni mi unuttun?{' '}
+                <button
+                  onClick={() => alert('Öğretmenine başvur!')}
+                  className="text-gray-300 hover:text-white underline"
+                >
+                  Öğretmenine sor
+                </button>
+              </p>
             </div>
           </div>
 
@@ -149,25 +196,18 @@ function OgrenciGiris() {
             <div className="mt-4 p-3 bg-gray-900/50 rounded-lg">
               <p className="text-gray-400 text-sm">
                 <strong>Demo giriş bilgileri:</strong><br />
-                Email: <span className="text-yellow-300">test@ogrenci.com</span><br />
-                Şifre: <span className="text-yellow-300">123456</span>
+                Öğrenci No: <span className="text-yellow-300">12345</span><br />
+                Şifre: <span className="text-yellow-300">1234</span>
               </p>
             </div>
           </div>
-
-          {/* Demo Giriş Butonu */}
-          <div className="mt-6">
-            <button
-              onClick={() => {
-                setFormData({
-                  email: 'test@ogrenci.com',
-                  sifre: '123456'
-                });
-              }}
-              className="w-full py-3 bg-gradient-to-r from-green-900/50 to-blue-900/50 text-green-300 font-semibold rounded-lg hover:from-green-900/70 hover:to-blue-900/70 transition-colors border border-green-700/50"
-            >
-              📋 Demo Bilgilerini Doldur
-            </button>
+          
+          {/* Önemli Not */}
+          <div className="mt-6 bg-yellow-900/30 rounded-xl p-4 border border-yellow-700/50">
+            <p className="text-gray-300 text-sm">
+              <strong>📌 Not:</strong> Öğrenci numaranı ve şifreni unutma!<br />
+              Şifreni sadece öğretmenin sıfırlayabilir.
+            </p>
           </div>
         </div>
       </main>
