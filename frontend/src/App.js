@@ -4,7 +4,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
 import HomePage from './pages/HomePage';
 import JournalPage from './pages/DailyJournals';
-import OgrenciKayit from './pages/OgrenciKayit'; // YENİ EKLENDİ
+import OgrenciKayit from './pages/OgrenciKayit';
+import OgrenciGiris from './pages/OgrenciGiris'; // YENİ EKLENDİ
 
 function App() {
   return (
@@ -14,7 +15,8 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/candemirin-ay-gunlugu" element={<JournalPage />} />
-          <Route path="/OgrenciKayit" element={<OgrenciKayit />} /> {/* YENİ EKLENDİ */}
+          <Route path="/OgrenciKayit" element={<OgrenciKayit />} />
+          <Route path="/OgrenciGiris" element={<OgrenciGiris />} /> {/* YENİ EKLENDİ */}
         </Routes>
       </BrowserRouter>
     </div>
