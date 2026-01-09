@@ -295,22 +295,7 @@ function OgrenciKayit() {
                 </div>
               </div>
 
-              {/* Bilgi Kartı 3 */}
-              <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700">
-                <h3 className="text-xl font-bold text-white mb-3">
-                  👨‍🏫 Öğretmeniniz
-                </h3>
-                <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
-                    <span className="text-white font-bold">CD</span>
-                  </div>
-                  <div>
-                    <p className="text-white font-semibold">Can Demir</p>
-                    <p className="text-gray-400 text-sm">Fen Bilimleri Öğretmeni</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+                          </div>
           </div>
         </div>
       </main>
