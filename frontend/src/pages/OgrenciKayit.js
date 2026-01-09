@@ -31,26 +31,35 @@ function OgrenciKayit() {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Şifre kontrolü
-    if (formData.sifre !== formData.sifreTekrar) {
-      alert('Şifreler eşleşmiyor!');
+    // Form validasyonları
+    if (formData.ad.trim() === '' || formData.soyad.trim() === '') {
+      alert('Ad ve soyad alanları zorunludur!');
       return;
     }
     
-    // Şifre uzunluğu kontrolü
-    if (formData.sifre.length < 4) {
-      alert('Şifre en az 4 karakter olmalıdır!');
-      return;
-    }
-    
-    // Öğrenci numarası kontrolü
     if (!formData.ogrenciNo.trim()) {
       alert('Öğrenci numarası zorunludur!');
       return;
     }
     
+    // Öğrenci numarası sadece sayı mı kontrolü
+    if (!/^\d+$/.test(formData.ogrenciNo)) {
+      alert('Öğrenci numarası sadece rakamlardan oluşmalıdır!');
+      return;
+    }
+    
+    if (formData.sifre.length < 4) {
+      alert('Şifre en az 4 karakter olmalıdır!');
+      return;
+    }
+    
+    if (formData.sifre !== formData.sifreTekrar) {
+      alert('Şifreler eşleşmiyor!');
+      return;
+    }
+    
     console.log('Kayıt verisi:', formData);
-    alert('Demo kayıt başarılı! Öğrenci paneline yönlendiriliyorsunuz...');
+    alert('Kayıt başarılı! Öğrenci paneline yönlendiriliyorsunuz...');
     
     // Demo modda kayıt olunca dashboard'a yönlendir
     setTimeout(() => {
@@ -97,7 +106,7 @@ function OgrenciKayit() {
 
       {/* Ana İçerik */}
       <main className="container mx-auto px-4 py-12">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           {/* Başlık */}
           <div className="text-center mb-12">
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
@@ -105,7 +114,7 @@ function OgrenciKayit() {
             </h1>
             <p className="text-gray-300 text-lg max-w-2xl mx-auto">
               Ay gözlem günlüğüne katılmak için bilgilerini gir. 
-              Her akşam ayın durumunu kaydedebileceksin!
+              Öğrenci numaran ile giriş yapabileceksin.
             </p>
           </div>
 
@@ -115,7 +124,7 @@ function OgrenciKayit() {
               <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 md:p-8 border border-gray-700">
                 <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
                   <FaUser className="mr-3 text-yellow-400" />
-                  Kişisel Bilgiler
+                  Öğrenci Bilgileri
                 </h2>
                 
                 <form onSubmit={handleSubmit} className="space-y-6">
@@ -124,7 +133,7 @@ function OgrenciKayit() {
                     <div>
                       <label className="block text-gray-300 mb-2">
                         <FaUser className="inline mr-2" />
-                        Adınız
+                        Ad *
                       </label>
                       <input
                         type="text"
@@ -140,7 +149,7 @@ function OgrenciKayit() {
                     <div>
                       <label className="block text-gray-300 mb-2">
                         <FaUser className="inline mr-2" />
-                        Soyadınız
+                        Soyad *
                       </label>
                       <input
                         type="text"
@@ -159,13 +168,14 @@ function OgrenciKayit() {
                     <div>
                       <label className="block text-gray-300 mb-2">
                         <FaSchool className="inline mr-2" />
-                        Sınıf
+                        Sınıf *
                       </label>
                       <select
                         name="sinif"
                         value={formData.sinif}
                         onChange={handleChange}
                         className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-yellow-500 transition-colors"
+                        required
                       >
                         {siniflar.map(sinif => (
                           <option key={sinif} value={sinif}>
@@ -178,13 +188,14 @@ function OgrenciKayit() {
                     <div>
                       <label className="block text-gray-300 mb-2">
                         <FaSchool className="inline mr-2" />
-                        Şube
+                        Şube *
                       </label>
                       <select
                         name="sube"
                         value={formData.sube}
                         onChange={handleChange}
                         className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-yellow-500 transition-colors"
+                        required
                       >
                         {subeler.map(sub => (
                           <option key={sub} value={sub}>
@@ -195,11 +206,11 @@ function OgrenciKayit() {
                     </div>
                   </div>
 
-                  {/* Öğrenci No - ZORUNLU VE ÖNEMLİ */}
+                  {/* Öğrenci No */}
                   <div>
                     <label className="block text-gray-300 mb-2">
                       <FaIdCard className="inline mr-2 text-yellow-400" />
-                      ÖĞRENCİ NUMARAN *
+                      ÖĞRENCİ NUMARASI *
                     </label>
                     <input
                       type="text"
@@ -207,19 +218,22 @@ function OgrenciKayit() {
                       value={formData.ogrenciNo}
                       onChange={handleChange}
                       className="w-full px-4 py-3 bg-gray-900 border-2 border-yellow-500/50 rounded-lg text-white focus:outline-none focus:border-yellow-500 transition-colors text-lg font-bold"
-                      placeholder="15, 23, 101 gibi"
+                      placeholder="12345 (sadece rakam)"
                       required
+                      pattern="\d+"
+                      title="Sadece rakam giriniz"
                     />
                     <p className="text-gray-400 text-sm mt-2">
                       Bu numara ile giriş yapacaksın. Unutma!
                     </p>
                   </div>
                   
+                  {/* Şifre */}
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-gray-300 mb-2">
                         <FaLock className="inline mr-2" />
-                        Şifre (min 4 karakter)
+                        Şifre * (min 4 karakter)
                       </label>
                       <input
                         type="password"
@@ -236,7 +250,7 @@ function OgrenciKayit() {
                     <div>
                       <label className="block text-gray-300 mb-2">
                         <FaLock className="inline mr-2" />
-                        Şifre Tekrar
+                        Şifre Tekrar *
                       </label>
                       <input
                         type="password"
@@ -290,37 +304,50 @@ function OgrenciKayit() {
 
             {/* Sağ: Bilgilendirme */}
             <div className="space-y-6">
-              {/* Bilgi Kartı 1 */}
+              {/* Nasıl Çalışır */}
               <div className="bg-blue-900/30 rounded-xl p-6 border border-blue-700/50">
                 <h3 className="text-xl font-bold text-white mb-3 flex items-center">
                   <FaMoon className="mr-2" />
-                  Nasıl Çalışır?
+                  Giriş Bilgilerin
                 </h3>
                 <ul className="space-y-3">
-                  {[
-                    "Kayıt olduktan sonra giriş yap",
-                    "Her akşam ay gözlemini yaz",
-                    "Fotoğraf ekleyebilirsin",
-                    "Öğretmenin yorum yapabilir"
-                  ].map((item, index) => (
-                    <li key={index} className="flex items-start text-gray-300">
-                      <span className="text-green-400 mr-2 mt-1">✓</span>
-                      <span>{item}</span>
-                    </li>
-                  ))}
+                  <li className="flex items-start text-gray-300">
+                    <span className="text-yellow-400 mr-2 mt-1">🔢</span>
+                    <span><strong>Öğrenci No:</strong> Giriş yapmak için kullanacaksın</span>
+                  </li>
+                  <li className="flex items-start text-gray-300">
+                    <span className="text-green-400 mr-2 mt-1">🔐</span>
+                    <span><strong>Şifre:</strong> En az 4 karakter</span>
+                  </li>
+                  <li className="flex items-start text-gray-300">
+                    <span className="text-purple-400 mr-2 mt-1">👨‍🏫</span>
+                    <span>Öğretmenin sana özel numara verecek</span>
+                  </li>
                 </ul>
               </div>
 
-              {/* Bilgi Kartı 2 */}
+              {/* Günlük Rutin */}
               <div className="bg-purple-900/30 rounded-xl p-6 border border-purple-700/50">
                 <h3 className="text-xl font-bold text-white mb-3">
                   📅 Günlük Rutin
                 </h3>
                 <div className="space-y-2 text-gray-300">
-                  <p>1. Akşam gökyüzüne bak</p>
-                  <p>2. Ayın şeklini seç</p>
-                  <p>3. Gözlemlerini yaz</p>
-                  <p>4. Kaydet ve paylaş!</p>
+                  <p className="flex items-center">
+                    <span className="text-blue-400 mr-2">1.</span>
+                    Akşam gökyüzüne bak
+                  </p>
+                  <p className="flex items-center">
+                    <span className="text-blue-400 mr-2">2.</span>
+                    Ayın şeklini seç
+                  </p>
+                  <p className="flex items-center">
+                    <span className="text-blue-400 mr-2">3.</span>
+                    Gözlemlerini yaz
+                  </p>
+                  <p className="flex items-center">
+                    <span className="text-blue-400 mr-2">4.</span>
+                    Kaydet ve paylaş!
+                  </p>
                 </div>
               </div>
 
