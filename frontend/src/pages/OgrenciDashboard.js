@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { 
   FaMoon, FaCalendarAlt, FaBook, FaChartBar, 
   FaUserCircle, FaArrowRight, FaPlus, FaHistory,
-  FaStar, FaSignOutAlt, FaArrowLeft 
+  FaStar, FaSignOutAlt
 } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 function OgrenciDashboard() {
+  const navigate = useNavigate();
+  
   // Demo verileri (Firebase eklenince gerçek veriler gelecek)
   const [ogrenci] = useState({
     ad: "Ali",
@@ -36,6 +38,27 @@ function OgrenciDashboard() {
 
   const handleCikis = () => {
     alert('Firebase eklenince gerçek çıkış yapılacak');
+    navigate('/');
+  };
+
+  const handleYeniGunluk = () => {
+    navigate('/YeniGunluk');
+  };
+
+  const handleGecmisGunlukler = () => {
+    alert('Geçmiş günlükler sayfası yakında eklenecek!');
+  };
+
+  const handleAyTakvimi = () => {
+    alert('Ay takvimi sayfası yakında eklenecek!');
+  };
+
+  const handleGunlukDetay = (id) => {
+    alert(`Günlük detay sayfası yakında eklenecek! ID: ${id}`);
+  };
+
+  const handleTumGunlukler = () => {
+    alert('Tüm günlükler sayfası yakında eklenecek!');
   };
 
   return (
@@ -66,7 +89,7 @@ function OgrenciDashboard() {
               
               <button
                 onClick={handleCikis}
-                className="flex items-center text-gray-300 hover:text-white transition-colors ml-4"
+                className="flex items-center text-gray-300 hover:text-white transition-colors ml-4 px-3 py-2 hover:bg-gray-800 rounded-lg"
               >
                 <FaSignOutAlt className="mr-2" />
                 Çıkış
@@ -105,10 +128,6 @@ function OgrenciDashboard() {
               <Link 
                 to="/YeniGunluk"
                 className="flex items-center justify-center px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold rounded-xl hover:from-yellow-600 hover:to-orange-600 transition-all transform hover:scale-105"
-                onClick={(e) => {
-                  e.preventDefault();
-                  alert('Günlük yazma sayfası yakında eklenecek!');
-                }}
               >
                 <FaPlus className="mr-2" />
                 Yeni Günlük Yaz
@@ -118,8 +137,11 @@ function OgrenciDashboard() {
 
           {/* Hızlı Eylemler */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            {/* Eylem 1 */}
-            <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-blue-500 transition-all duration-300 hover:scale-[1.02]">
+            {/* Eylem 1 - Yeni Günlük */}
+            <button 
+              onClick={handleYeniGunluk}
+              className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-blue-500 transition-all duration-300 hover:scale-[1.02] text-left"
+            >
               <div className="flex items-center justify-between mb-4">
                 <div className="w-12 h-12 rounded-full bg-blue-900/50 flex items-center justify-center">
                   <FaPlus className="text-2xl text-blue-400" />
@@ -130,13 +152,16 @@ function OgrenciDashboard() {
               <p className="text-gray-300 mb-4">
                 Bugünkü ay gözlemini kaydet
               </p>
-              <button className="w-full py-2 bg-blue-900/50 text-blue-300 rounded-lg hover:bg-blue-900/70 transition-colors">
+              <div className="w-full py-2 bg-blue-900/50 text-blue-300 rounded-lg text-center">
                 Hemen Başla
-              </button>
-            </div>
+              </div>
+            </button>
 
-            {/* Eylem 2 */}
-            <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-purple-500 transition-all duration-300 hover:scale-[1.02]">
+            {/* Eylem 2 - Geçmiş Günlükler */}
+            <button 
+              onClick={handleGecmisGunlukler}
+              className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-purple-500 transition-all duration-300 hover:scale-[1.02] text-left"
+            >
               <div className="flex items-center justify-between mb-4">
                 <div className="w-12 h-12 rounded-full bg-purple-900/50 flex items-center justify-center">
                   <FaHistory className="text-2xl text-purple-400" />
@@ -147,13 +172,16 @@ function OgrenciDashboard() {
               <p className="text-gray-300 mb-4">
                 Önceki gözlemlerini incele
               </p>
-              <button className="w-full py-2 bg-purple-900/50 text-purple-300 rounded-lg hover:bg-purple-900/70 transition-colors">
+              <div className="w-full py-2 bg-purple-900/50 text-purple-300 rounded-lg text-center">
                 Görüntüle
-              </button>
-            </div>
+              </div>
+            </button>
 
-            {/* Eylem 3 */}
-            <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-green-500 transition-all duration-300 hover:scale-[1.02]">
+            {/* Eylem 3 - Ay Takvimi */}
+            <button 
+              onClick={handleAyTakvimi}
+              className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-green-500 transition-all duration-300 hover:scale-[1.02] text-left"
+            >
               <div className="flex items-center justify-between mb-4">
                 <div className="w-12 h-12 rounded-full bg-green-900/50 flex items-center justify-center">
                   <FaCalendarAlt className="text-2xl text-green-400" />
@@ -164,10 +192,10 @@ function OgrenciDashboard() {
               <p className="text-gray-300 mb-4">
                 Ayın evrelerini takip et
               </p>
-              <button className="w-full py-2 bg-green-900/50 text-green-300 rounded-lg hover:bg-green-900/70 transition-colors">
+              <div className="w-full py-2 bg-green-900/50 text-green-300 rounded-lg text-center">
                 Takvimi Aç
-              </button>
-            </div>
+              </div>
+            </button>
           </div>
 
           {/* İki Sütun: İstatistikler ve Son Günlükler */}
@@ -231,16 +259,20 @@ function OgrenciDashboard() {
                   <FaHistory className="text-2xl text-blue-400 mr-3" />
                   <h2 className="text-2xl font-bold">Son Günlüklerin</h2>
                 </div>
-                <button className="text-sm text-blue-400 hover:text-blue-300">
+                <button 
+                  onClick={handleTumGunlukler}
+                  className="text-sm text-blue-400 hover:text-blue-300"
+                >
                   Tümünü Gör →
                 </button>
               </div>
               
               <div className="space-y-4">
                 {sonGunlukler.map((gunluk) => (
-                  <div 
+                  <button 
                     key={gunluk.id} 
-                    className="p-4 bg-gray-900/50 rounded-xl hover:bg-gray-900/70 transition-colors"
+                    onClick={() => handleGunlukDetay(gunluk.id)}
+                    className="w-full p-4 bg-gray-900/50 rounded-xl hover:bg-gray-900/70 transition-colors text-left"
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center">
@@ -250,14 +282,14 @@ function OgrenciDashboard() {
                           <p className="text-sm text-gray-400">{gunluk.tarih}</p>
                         </div>
                       </div>
-                      <button className="text-gray-400 hover:text-white">
+                      <div className="text-gray-400">
                         <FaArrowRight />
-                      </button>
+                      </div>
                     </div>
                     <p className="text-gray-300 text-sm">
                       "{gunluk.durum}"
                     </p>
-                  </div>
+                  </button>
                 ))}
               </div>
               
@@ -269,7 +301,10 @@ function OgrenciDashboard() {
                   <p className="text-gray-400 mb-4">
                     İlk ay gözlemini kaydetmeye ne dersin?
                   </p>
-                  <button className="px-6 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-lg">
+                  <button 
+                    onClick={handleYeniGunluk}
+                    className="px-6 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-lg hover:from-yellow-600 hover:to-orange-600"
+                  >
                     İlk Günlüğü Yaz
                   </button>
                 </div>
