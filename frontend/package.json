@@ -86,3 +86,8 @@
     "tailwindcss": "^3.4.17"
   }
 }
+"eslintConfig": {
+  "rules": {
+    "semi": "off"
+  }
+}
