@@ -6,7 +6,7 @@ import HomePage from './pages/HomePage';
 import JournalPage from './pages/DailyJournals';
 import OgrenciKayit from './pages/OgrenciKayit';
 import OgrenciGiris from './pages/OgrenciGiris'; // YENİ EKLENDİ
-mport OgrenciDashboard from './pages/OgrenciDashboard';
+import OgrenciDashboard from './pages/OgrenciDashboard'; //
 
 function App() {
   return (
