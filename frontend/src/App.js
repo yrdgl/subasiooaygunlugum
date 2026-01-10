@@ -1,6 +1,8 @@
 import React from 'react';
 import './App.css';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+
+// Ana sayfaları import et
 import HomePage from './pages/HomePage';
 import JournalPage from './pages/DailyJournals';
 import OgrenciKayit from './pages/OgrenciKayit';
@@ -8,9 +10,74 @@ import OgrenciGiris from './pages/OgrenciGiris';
 import OgrenciDashboard from './pages/OgrenciDashboard';
 import YeniGunluk from './pages/YeniGunluk';
 import Gunlukler from './pages/Gunlukler';
-import AyTakvimi from './pages/AyTakvimi';  // YENİ EKLENECEK
-import OgretmenDashboard from './pages/OgretmenDashboard';  // YENİ EKLENECEK
-import GunlukDetay from './pages/GunlukDetay';  // YENİ EKLENECEK
+
+// AyTakvimi.js dosyası var mı kontrol et - yoksa placeholder kullan
+let AyTakvimi;
+try {
+  AyTakvimi = require('./pages/AyTakvimi').default;
+} catch (error) {
+  AyTakvimi = () => (
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white p-8">
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-4xl font-bold mb-6">🌕 AY TAKVİMİ (2026)</h1>
+        <div className="bg-yellow-900/30 p-6 rounded-xl mb-6">
+          <p className="text-yellow-200 mb-2">ℹ️ AyTakvimi.js dosyası yüklenemedi</p>
+          <p className="text-gray-300">
+            Lütfen <code>src/pages/AyTakvimi.js</code> dosyasının oluşturulduğundan emin olun.
+          </p>
+        </div>
+        <a 
+          href="/OgrenciDashboard" 
+          className="inline-block px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-lg hover:from-yellow-600 hover:to-orange-600"
+        >
+          Dashboard'a Dön
+        </a>
+      </div>
+    </div>
+  );
+}
+
+// OgretmenDashboard için placeholder (henüz oluşturulmadı)
+const OgretmenDashboard = () => (
+  <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white p-8">
+    <div className="max-w-4xl mx-auto">
+      <h1 className="text-4xl font-bold mb-6">👨‍🏫 ÖĞRETMEN DASHBOARD</h1>
+      <div className="bg-blue-900/30 p-6 rounded-xl mb-6">
+        <p className="text-blue-200">Bu sayfa yakında eklenecek!</p>
+        <p className="text-gray-300 mt-2">
+          Öğretmen paneli şu anda geliştirme aşamasındadır.
+        </p>
+      </div>
+      <a 
+        href="/" 
+        className="inline-block px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600"
+      >
+        Ana Sayfaya Dön
+      </a>
+    </div>
+  </div>
+);
+
+// GunlukDetay için placeholder
+const GunlukDetay = () => (
+  <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white p-8">
+    <div className="max-w-4xl mx-auto">
+      <h1 className="text-4xl font-bold mb-6">📖 GÜNLÜK DETAY</h1>
+      <div className="bg-purple-900/30 p-6 rounded-xl mb-6">
+        <p className="text-purple-200">Bu sayfa yakında eklenecek!</p>
+        <p className="text-gray-300 mt-2">
+          Günlük detay sayfası şu anda geliştirme aşamasındadır.
+        </p>
+      </div>
+      <a 
+        href="/Gunlukler" 
+        className="inline-block px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600"
+      >
+        Geçmiş Günlüklere Dön
+      </a>
+    </div>
+  </div>
+);
 
 function App() {
   // 2026 yılı bilgisi - tüm uygulama için
@@ -34,17 +101,34 @@ function App() {
           <Route path="/OgrenciKayit" element={<OgrenciKayit />} />
           <Route path="/OgrenciGiris" element={<OgrenciGiris />} />
           
-          {/* ÖĞRENCİ PANELİ */}
+          {/* ÖĞRENCİ PANELİ - ÇALIŞAN SAYFALAR */}
           <Route path="/OgrenciDashboard" element={<OgrenciDashboard />} />
           <Route path="/YeniGunluk" element={<YeniGunluk />} />
           <Route path="/Gunlukler" element={<Gunlukler />} />
           <Route path="/AyTakvimi" element={<AyTakvimi />} />
           <Route path="/GunlukDetay/:id" element={<GunlukDetay />} />
           
-          {/* ÖĞRETMEN PANELİ */}
+          {/* ÖĞRETMEN PANELİ - YAKINDA */}
           <Route path="/OgretmenDashboard" element={<OgretmenDashboard />} />
-          <Route path="/OgretmenGunlukler" element={<div className="min-h-screen bg-gray-900 text-white p-8"><h1 className="text-3xl">Öğretmen Günlükler Sayfası Yakında Eklenecek</h1></div>} />
-          <Route path="/SinifYonetimi" element={<div className="min-h-screen bg-gray-900 text-white p-8"><h1 className="text-3xl">Sınıf Yönetimi Sayfası Yakında Eklenecek</h1></div>} />
+          <Route path="/OgretmenGunlukler" element={
+            <div className="min-h-screen bg-gray-900 text-white p-8">
+              <div className="max-w-4xl mx-auto">
+                <h1 className="text-3xl font-bold mb-4">📚 Öğretmen Günlükler Sayfası</h1>
+                <p className="text-gray-300 mb-6">Bu sayfa yakında eklenecek!</p>
+                <a href="/" className="text-blue-400 hover:text-blue-300">Ana Sayfa</a>
+              </div>
+            </div>
+          } />
+          
+          <Route path="/SinifYonetimi" element={
+            <div className="min-h-screen bg-gray-900 text-white p-8">
+              <div className="max-w-4xl mx-auto">
+                <h1 className="text-3xl font-bold mb-4">👥 Sınıf Yönetimi</h1>
+                <p className="text-gray-300 mb-6">Bu sayfa yakında eklenecek!</p>
+                <a href="/" className="text-blue-400 hover:text-blue-300">Ana Sayfa</a>
+              </div>
+            </div>
+          } />
           
           {/* Sayfa bulunamadı - 404 (2026 yılına uygun güncellendi) */}
           <Route path="*" element={
