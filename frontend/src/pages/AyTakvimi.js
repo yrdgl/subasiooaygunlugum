@@ -13,6 +13,17 @@ function AyTakvimi() {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [currentDate, setCurrentDate] = useState(new Date(2026, selectedMonth, 1));
   
+  // Kullanıcının yazdığı günlük tarihleri (ÖRNEK - Firebase'den gelecek)
+  const [yazilanGunler] = useState([
+    '2026-01-10',
+    '2026-01-15',
+    '2026-01-18',
+    '2026-02-08',
+    '2026-02-17',
+    '2026-03-10',
+    '2026-03-18',
+  ]);
+  
   // Ay evreleri bilgisi - 2026 yılı için
   const ayEvreleri2026 = {
     // Ocak 2026
@@ -60,7 +71,9 @@ function AyTakvimi() {
         date: new Date(year, month - 1, prevMonthLastDay - i),
         currentMonth: false,
         isToday: false,
-        ayEvresi: null
+        ayEvresi: null,
+        dateString: null,
+        günlükVar: false
       });
     }
     
@@ -71,13 +84,15 @@ function AyTakvimi() {
     for (let i = 1; i <= daysInMonth; i++) {
       const date = new Date(year, month, i);
       const dateString = `${year}-${(month + 1).toString().padStart(2, '0')}-${i.toString().padStart(2, '0')}`;
+      const günlükVar = yazilanGunler.includes(dateString);
       
       days.push({
         date,
         currentMonth: true,
         isToday: isCurrentYear && date.getDate() === today.getDate() && date.getMonth() === today.getMonth(),
         ayEvresi: ayEvreleri2026[dateString] || null,
-        dateString
+        dateString,
+        günlükVar
       });
     }
     
@@ -89,7 +104,9 @@ function AyTakvimi() {
         date: new Date(year, month + 1, i),
         currentMonth: false,
         isToday: false,
-        ayEvresi: null
+        ayEvresi: null,
+        dateString: null,
+        günlükVar: false
       });
     }
     
@@ -125,10 +142,9 @@ function AyTakvimi() {
     }
   };
 
-  const handleGunlukYaz = (date) => {
-    const dateString = `${selectedYear}-${(selectedMonth + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
-    alert(`📅 ${dateString} tarihi için günlük yaz sayfasına yönlendirileceksiniz.\n\nBu özellik yakında eklenecek!`);
-    // Gelecekte: navigate(`/YeniGunluk?date=${dateString}`);
+  const handleGunlukYaz = (date, dateString) => {
+    // Yeni Günlük sayfasına yönlendir, tarihi parametre olarak gönder
+    navigate(`/YeniGunluk?date=${dateString}`);
   };
 
   const formatDate = (date) => {
@@ -246,17 +262,23 @@ function AyTakvimi() {
                     ${gun.currentMonth ? 'bg-gray-900/50 border-gray-700' : 'bg-gray-900/20 border-gray-800/50'}
                     ${gun.isToday ? 'border-yellow-500 bg-yellow-500/10' : ''}
                     ${gun.ayEvresi ? 'hover:border-blue-500 hover:bg-blue-900/20' : 'hover:border-gray-600'}
+                    ${gun.günlükVar ? 'hover:border-green-500 hover:bg-green-900/20' : ''}
                     ${!gun.currentMonth ? 'opacity-50' : ''}
                   `}
-                  onClick={() => gun.currentMonth && handleGunlukYaz(gun.date)}
+                  onClick={() => gun.currentMonth && handleGunlukYaz(gun.date, gun.dateString)}
                 >
                   <div className="flex justify-between items-start mb-1">
                     <div className={`
-                      w-8 h-8 flex items-center justify-center rounded-full
+                      w-8 h-8 flex items-center justify-center rounded-full relative
                       ${gun.isToday ? 'bg-yellow-500 text-white' : 'text-gray-300'}
                       ${!gun.currentMonth ? 'text-gray-500' : ''}
                     `}>
                       {gun.date.getDate()}
+                      
+                      {/* Günlük yazılmışsa yeşil nokta */}
+                      {gun.günlükVar && (
+                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border border-gray-800"></div>
+                      )}
                     </div>
                     
                     {gun.ayEvresi && (
@@ -277,13 +299,38 @@ function AyTakvimi() {
                     </div>
                   )}
                   
-                  {gun.isToday && (
+                  {/* Günlük var yazısı */}
+                  {gun.günlükVar && (
+                    <div className="text-xs text-green-400 mt-2 font-semibold">
+                      📝 Günlük Var
+                    </div>
+                  )}
+                  
+                  {gun.isToday && !gun.günlükVar && (
                     <div className="text-xs text-yellow-400 mt-2 font-semibold">
                       🔸 Bugün
                     </div>
                   )}
                 </div>
               ))}
+            </div>
+            
+            {/* Açıklama Kutusu */}
+            <div className="mt-6 pt-4 border-t border-gray-700">
+              <div className="flex flex-wrap items-center justify-center gap-4 text-sm">
+                <div className="flex items-center">
+                  <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                  <span className="text-gray-300">Günlük Yazılmış</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
+                  <span className="text-gray-300">Bugün</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="text-blue-400 mr-2">🌓</div>
+                  <span className="text-gray-300">Ay Evresi Var</span>
+                </div>
+              </div>
             </div>
           </div>
 
