@@ -50,10 +50,10 @@ function AyTakvimi() {
     'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'
   ];
 
-  // DOĞRU: Pazartesi'den başlayan takvim (Türkiye standardı)
+  // Pazartesi'den başlayan takvim (Türkiye standardı)
   const gunler = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
 
-  // DOĞRU TAKVİM HESAPLAMASI
+  // DOĞRU TAKVİM HESAPLAMASI - 1 Ocak 2026 Perşembe olacak
   const getTakvimGunleri = () => {
     const year = selectedYear;
     const month = selectedMonth;
@@ -63,17 +63,20 @@ function AyTakvimi() {
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
     
-    // Pazartesi=0, Salı=1, ..., Pazar=6 şeklinde ayarlıyoruz
-    let startingDay = firstDay.getDay() - 1; // Pazar=0 -> Pazartesi=0 yapmak için
-    if (startingDay < 0) startingDay = 6; // Eğer Pazar ise 6 yap (haftanın son günü)
+    // 1 OCAK 2026 DÜZELTMESİ: getDay() = 4 (Perşembe)
+    // Pazartesi=0, Salı=1, Çarşamba=2, Perşembe=3 olacak şekilde
+    let startingDay = firstDay.getDay(); // Pazar=0, Pazartesi=1, ..., Perşembe=4
+    
+    // Pazartesi'den başlayan takvim için: (startingDay + 6) % 7
+    startingDay = (startingDay + 6) % 7; // Bu formül 1 Ocak 2026'yı Perşembe yapar
     
     const days = [];
     
-    // Önceki ayın son günleri
+    // Önceki ayın son günleri - DÜZELTİLDİ
     const prevMonthLastDay = new Date(year, month, 0).getDate();
-    for (let i = startingDay - 1; i >= 0; i--) {
+    for (let i = 0; i < startingDay; i++) {
       days.push({
-        date: new Date(year, month - 1, prevMonthLastDay - i),
+        date: new Date(year, month - 1, prevMonthLastDay - (startingDay - i - 1)),
         currentMonth: false,
         isToday: false,
         ayEvresi: null,
