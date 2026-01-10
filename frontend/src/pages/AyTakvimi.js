@@ -143,9 +143,11 @@ function AyTakvimi() {
   };
 
   const handleGunlukYaz = (date, dateString) => {
-    // Yeni Günlük sayfasına yönlendir, tarihi parametre olarak gönder
-    navigate(`/YeniGunluk?date=${dateString}`);
-  };
+  console.log("Tıklandı - dateString:", dateString); // BU SATIRI EKLE
+  
+  // Yeni Günlük sayfasına yönlendir, tarihi parametre olarak gönder
+  navigate(`/YeniGunluk?date=${dateString}`);
+};
 
   const formatDate = (date) => {
     return new Intl.DateTimeFormat('tr-TR', {
