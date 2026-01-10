@@ -21,17 +21,17 @@ function OgrenciDashboard() {
   const [istatistikler] = useState({
     toplamGunluk: 12,
     enCokYazilanEvre: "Dolunay",
-    sonGiris: "15 Ocak 2024"
+    sonGiris: "10 Ocak 2026"  // 2024 → 2026
   });
 
   const [sonGunlukler] = useState([
-    { id: 1, tarih: "14 Oca 2024", ayEvresi: "🌕 Dolunay", durum: "Çok parlak ve büyük görünüyordu" },
-    { id: 2, tarih: "13 Oca 2024", ayEvresi: "🌔 Şişkin Ay", durum: "Bulutlar arasında kayboluyordu" },
-    { id: 3, tarih: "12 Oca 2024", ayEvresi: "🌓 İlk Dördün", durum: "Yarısı görünüyordu, hava açıktı" },
+    { id: 1, tarih: "9 Oca 2026", ayEvresi: "🌕 Dolunay", durum: "Çok parlak ve büyük görünüyordu" },
+    { id: 2, tarih: "8 Oca 2026", ayEvresi: "🌔 Şişkin Ay", durum: "Bulutlar arasında kayboluyordu" },
+    { id: 3, tarih: "7 Oca 2026", ayEvresi: "🌓 İlk Dördün", durum: "Yarısı görünüyordu, hava açıktı" },
   ]);
 
   const [bugununBilgisi] = useState({
-    tarih: "15 Ocak 2024",
+    tarih: "10 Ocak 2026",  // 2024 → 2026 (bugünün tarihi)
     ayEvresi: "🌖 Son Dördün",
     ayDurumu: "Ayın yarısı görünüyor, hafif bulutlu"
   });
@@ -319,7 +319,7 @@ function OgrenciDashboard() {
             </h3>
             <p className="text-gray-300">
               Şu anda Firebase bağlantısı yok. Bu bir demo gösterimdir.
-              Firebase ekleyince gerçek öğrenci verileri yüklenecek.
+              Firebase eklenince gerçek öğrenci verileri yüklenecek.
             </p>
             <div className="mt-4 p-3 bg-gray-900/50 rounded-lg">
               <p className="text-gray-400 text-sm">
