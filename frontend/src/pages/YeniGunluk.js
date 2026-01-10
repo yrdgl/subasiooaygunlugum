@@ -455,18 +455,31 @@ function YeniGunluk() {
               </div>
 
               {/* Ay Evreleri Bilgisi */}
-              <div className="bg-green-900/30 rounded-xl p-6 border border-green-700/50">
-                <h3 className="text-xl font-bold text-white mb-3">
-                  🌘 2026 Ay Evreleri
-                </h3>
-                <div className="space-y-2 text-sm text-gray-300">
-                  <p><span className="text-xl">🌑</span> <strong>Yeni Ay:</strong> Ay görünmez</p>
-                  <p><span className="text-xl">🌓</span> <strong>İlk Dördün:</strong> Yarım ay</p>
-                  <p><span className="text-xl">🌕</span> <strong>Dolunay:</strong> Tam daire</p>
-                  <p><span className="text-xl">🌗</span> <strong>Son Dördün:</strong> Yarım ay</p>
-                </div>
-              </div>
-
+<div className="bg-green-900/30 rounded-xl p-6 border border-green-700/50">
+  <h3 className="text-xl font-bold text-white mb-3">
+    🌘 2026 Ay Evreleri
+  </h3>
+  <div className="space-y-2 text-sm text-gray-300">
+    {/* 1. Grup: Yeni Ay'dan Dolunay'a */}
+    <div className="mb-1">
+      <p className="text-xs text-gray-400 mb-1">BÜYÜME EVRESİ</p>
+      <p><span className="text-xl">🌑</span> <strong>Yeni Ay:</strong> Ay görünmez</p>
+      <p><span className="text-xl">🌘</span> <strong>Hilal (İnce):</strong> İnce hilal</p>
+      <p><span className="text-xl">🌒</span> <strong>Hilal (Şişkin):</strong> Büyüyen hilal</p>
+      <p><span className="text-xl">🌓</span> <strong>İlk Dördün:</strong> Yarım ay</p>
+      <p><span className="text-xl">🌔</span> <strong>Şişkin Ay:</strong> Dolunay'a yakın</p>
+      <p><span className="text-xl">🌕</span> <strong>Dolunay:</strong> Tam daire</p>
+    </div>
+    
+    {/* 2. Grup: Dolunay'dan Yeni Ay'a */}
+    <div>
+      <p className="text-xs text-gray-400 mb-1">KÜÇÜLME EVRESİ</p>
+      <p><span className="text-xl">🌖</span> <strong>Küçülen Dolunay:</strong> Dolunay'dan sonra</p>
+      <p><span className="text-xl">🌗</span> <strong>Son Dördün:</strong> Yarım ay</p>
+      <p><span className="text-xl">🌘</span> <strong>Hilal (Küçülen):</strong> Küçülen hilal</p>
+    </div>
+  </div>
+</div>
               {/* Kaydetme İşlemi */}
               <div className="bg-red-900/30 rounded-xl p-6 border border-red-700/50">
                 <h3 className="text-xl font-bold text-white mb-3">
