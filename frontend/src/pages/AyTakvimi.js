@@ -50,26 +50,30 @@ function AyTakvimi() {
     'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'
   ];
 
-  // DÜZELTME 1: Hafta günleri Pazar'dan başlamalı
-  const gunler = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'];
+  // DOĞRU: Pazartesi'den başlayan takvim (Türkiye standardı)
+  const gunler = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
 
-  // Takvim günlerini hesapla
+  // DOĞRU TAKVİM HESAPLAMASI
   const getTakvimGunleri = () => {
     const year = selectedYear;
     const month = selectedMonth;
     
+    // Ayın ilk ve son günü
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
-    const startingDay = firstDay.getDay(); // 0 = Pazar
+    
+    // Pazartesi=0, Salı=1, ..., Pazar=6 şeklinde ayarlıyoruz
+    let startingDay = firstDay.getDay() - 1; // Pazar=0 -> Pazartesi=0 yapmak için
+    if (startingDay < 0) startingDay = 6; // Eğer Pazar ise 6 yap (haftanın son günü)
     
     const days = [];
     
-    // DÜZELTME 2: Önceki ayın son günleri doğru hesaplama
+    // Önceki ayın son günleri
     const prevMonthLastDay = new Date(year, month, 0).getDate();
-    for (let i = 0; i < startingDay; i++) {
+    for (let i = startingDay - 1; i >= 0; i--) {
       days.push({
-        date: new Date(year, month - 1, prevMonthLastDay - (startingDay - i - 1)),
+        date: new Date(year, month - 1, prevMonthLastDay - i),
         currentMonth: false,
         isToday: false,
         ayEvresi: null,
@@ -97,8 +101,8 @@ function AyTakvimi() {
       });
     }
     
-    // Sonraki ayın ilk günleri
-    const totalCells = 42; // 6 hafta * 7 gün
+    // Sonraki ayın ilk günleri (toplam 42 hücre için)
+    const totalCells = 42;
     const remainingCells = totalCells - days.length;
     for (let i = 1; i <= remainingCells; i++) {
       days.push({
