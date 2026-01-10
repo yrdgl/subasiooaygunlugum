@@ -50,7 +50,8 @@ function AyTakvimi() {
     'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'
   ];
 
-  const gunler = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+  // DÜZELTME 1: Hafta günleri Pazar'dan başlamalı
+  const gunler = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'];
 
   // Takvim günlerini hesapla
   const getTakvimGunleri = () => {
@@ -64,11 +65,11 @@ function AyTakvimi() {
     
     const days = [];
     
-    // Önceki ayın son günleri
+    // DÜZELTME 2: Önceki ayın son günleri doğru hesaplama
     const prevMonthLastDay = new Date(year, month, 0).getDate();
-    for (let i = startingDay - 1; i >= 0; i--) {
+    for (let i = 0; i < startingDay; i++) {
       days.push({
-        date: new Date(year, month - 1, prevMonthLastDay - i),
+        date: new Date(year, month - 1, prevMonthLastDay - (startingDay - i - 1)),
         currentMonth: false,
         isToday: false,
         ayEvresi: null,
