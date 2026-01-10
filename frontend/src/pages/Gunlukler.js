@@ -1,89 +1,87 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   FaMoon, FaCalendarAlt, FaSearch, FaFilter,
-  FaArrowLeft, FaEye, FaTrash, FaEdit, FaPlus
+  FaArrowLeft, FaEye, FaTrash, FaEdit, FaPlus, FaDatabase
 } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 
 function Gunlukler() {
   const navigate = useNavigate();
   
-  // Demo günlük verileri - 2026 yılı
-  const [gunlukler] = useState([
-    {
-      id: 1,
-      tarih: "15 Ocak 2026",
-      ayEvresi: "🌕 Dolunay",
-      havaDurumu: "☀️ Güneşli",
-      gozlem: "Ay bu gece çok parlaktı. Gökyüzü tamamen açıktı. Kraterleri net görebiliyordum.",
-      notlar: "Teleskopla izledim, harikaydı!"
-    },
-    {
-      id: 2,
-      tarih: "14 Ocak 2026",
-      ayEvresi: "🌔 Şişkin Ay",
-      havaDurumu: "⛅ Parçalı Bulutlu",
-      gozlem: "Ay bulutlar arasında kaybolup çıkıyordu. Biraz puslu görünüyordu.",
-      notlar: ""
-    },
-    {
-      id: 3,
-      tarih: "13 Ocak 2026",
-      ayEvresi: "🌓 İlk Dördün",
-      havaDurumu: "☀️ Güneşli",
-      gozlem: "Ayın yarısı görünüyordu. Çok net ve parlaktı.",
-      notlar: "Fotoğraf çektim"
-    },
-    {
-      id: 4,
-      tarih: "12 Ocak 2026",
-      ayEvresi: "🌒 Hilal (İlk)",
-      havaDurumu: "☁️ Bulutlu",
-      gozlem: "Çok ince bir hilaldi. Bulutlar nedeniyle zor göründü.",
-      notlar: ""
-    },
-    {
-      id: 5,
-      tarih: "11 Ocak 2026",
-      ayEvresi: "🌑 Yeni Ay",
-      havaDurumu: "⛈️ Fırtınalı",
-      gozlem: "Ay görünmüyordu. Gökyüzü bulutluydu ve yağmur vardı.",
-      notlar: "Gözlem yapamadım"
-    },
-    {
-      id: 6,
-      tarih: "10 Ocak 2026",
-      ayEvresi: "🌘 Hilal (Son)",
-      havaDurumu: "☀️ Güneşli",
-      gozlem: "İnce bir hilal şeklindeydi. Akşam erken saatlerde göründü.",
-      notlar: ""
-    },
-    {
-      id: 7,
-      tarih: "9 Ocak 2026",
-      ayEvresi: "🌗 Son Dördün",
-      havaDurumu: "❄️ Karlı",
-      gozlem: "Ayın yarısı görünüyordu ama kar nedeniyle pusluydu.",
-      notlar: "Hava çok soğuktu"
-    },
-    {
-      id: 8,
-      tarih: "8 Ocak 2026",
-      ayEvresi: "🌖 Şişkin Ay (Son)",
-      havaDurumu: "☀️ Güneşli",
-      gozlem: "Ay neredeyse dolunay gibiydi. Çok parlaktı.",
-      notlar: ""
-    }
-  ]);
-
+  const [gunlukler, setGunlukler] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [filtreler, setFiltreler] = useState({
     arama: '',
     ayEvresi: '',
     baslangicTarihi: '',
     bitisTarihi: ''
   });
-
   const [siralama, setSiralama] = useState('yeniden-eskiye');
+  const [dataSource, setDataSource] = useState('localStorage'); // 'demo' veya 'localStorage'
+
+  // localStorage'dan günlükleri yükle
+  useEffect(() => {
+    const loadGunlukler = () => {
+      setLoading(true);
+      
+      try {
+        // localStorage'dan günlükleri al
+        const storedGunlukler = JSON.parse(localStorage.getItem('ayGunlukleri') || '[]');
+        
+        if (storedGunlukler.length > 0) {
+          setGunlukler(storedGunlukler);
+          setDataSource('localStorage');
+        } else {
+          // Eğer localStorage'da veri yoksa demo verileri göster
+          const demoGunlukler = getDemoGunlukler();
+          setGunlukler(demoGunlukler);
+          setDataSource('demo');
+        }
+      } catch (error) {
+        console.error('Günlükler yüklenirken hata:', error);
+        // Hata durumunda demo verileri göster
+        setGunlukler(getDemoGunlukler());
+        setDataSource('demo');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadGunlukler();
+    
+    // LocalStorage değişikliklerini dinle
+    const handleStorageChange = () => {
+      loadGunlukler();
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
+  // Demo günlük verileri - localStorage'da veri yoksa gösterilecek
+  const getDemoGunlukler = () => {
+    return [
+      {
+        id: 1,
+        tarih: "15 Ocak 2026",
+        ayEvresi: "🌕 Dolunay",
+        havaDurumu: "☀️ Güneşli",
+        gozlem: "Ay bu gece çok parlaktı. Gökyüzü tamamen açıktı. Kraterleri net görebiliyordum.",
+        notlar: "Teleskopla izledim, harikaydı!"
+      },
+      {
+        id: 2,
+        tarih: "14 Ocak 2026",
+        ayEvresi: "🌔 Şişkin Ay",
+        havaDurumu: "⛅ Parçalı Bulutlu",
+        gozlem: "Ay bulutlar arasında kaybolup çıkıyordu. Biraz puslu görünüyordu.",
+        notlar: ""
+      }
+    ];
+  };
 
   const ayEvreleri = [
     { emoji: '🌑', ad: 'Yeni Ay', deger: 'yeni' },
@@ -110,7 +108,21 @@ function Gunlukler() {
 
   const handleGunlukSil = (id) => {
     if (window.confirm('Bu günlüğü silmek istediğinize emin misiniz?')) {
-      alert(`Günlük silindi! (ID: ${id}) - Firebase eklenecek`);
+      // LocalStorage'dan sil
+      const mevcutGunlukler = JSON.parse(localStorage.getItem('ayGunlukleri') || '[]');
+      const yeniGunlukler = mevcutGunlukler.filter(gunluk => gunluk.id !== id);
+      localStorage.setItem('ayGunlukleri', JSON.stringify(yeniGunlukler));
+      
+      // State'i güncelle
+      setGunlukler(yeniGunlukler);
+      
+      // Eğer tüm günlükler silindiyse demo verilere geç
+      if (yeniGunlukler.length === 0) {
+        setGunlukler(getDemoGunlukler());
+        setDataSource('demo');
+      }
+      
+      alert(`Günlük silindi! (ID: ${id})`);
     }
   };
 
@@ -188,7 +200,17 @@ function Gunlukler() {
     const enCok = Object.entries(evreler)
       .sort((a, b) => b[1] - a[1])[0];
     
-    return enCok ? enCok[0] : 'Dolunay';
+    return enCok ? enCok[0] : 'Henüz yok';
+  };
+
+  // LocalStorage'ı temizle (demo için)
+  const handleLocalStorageTemizle = () => {
+    if (window.confirm('Tüm kayıtlı günlükleri silmek istediğinize emin misiniz? Bu işlem geri alınamaz!')) {
+      localStorage.removeItem('ayGunlukleri');
+      setGunlukler(getDemoGunlukler());
+      setDataSource('demo');
+      alert('Tüm günlükler silindi! Demo veriler gösteriliyor.');
+    }
   };
 
   return (
@@ -202,7 +224,7 @@ function Gunlukler() {
                 <FaMoon className="text-white text-xl" />
               </div>
               <h1 className="text-2xl font-bold text-white">
-                Ay Günlüğü
+                Ay Günlüğü - 2026
               </h1>
             </div>
             
@@ -238,21 +260,34 @@ function Gunlukler() {
                   📚 Geçmiş Günlüklerim
                 </h1>
                 <p className="text-gray-300">
-                  2026 yılında yazdığınız tüm ay gözlem günlükleri
+                  {dataSource === 'localStorage' 
+                    ? 'Kayıtlı günlükleriniz' 
+                    : 'Demo günlükler (henüz kayıt yok)'}
                 </p>
               </div>
               
-              <div className="mt-4 md:mt-0">
+              <div className="mt-4 md:mt-0 flex items-center space-x-4">
                 <div className="flex items-center space-x-2 text-lg">
                   <span className="text-gray-300">Toplam:</span>
                   <span className="font-bold text-white text-2xl">{toplamGunluk}</span>
                   <span className="text-gray-300">günlük</span>
                 </div>
+                
+                {dataSource === 'localStorage' && (
+                  <button
+                    onClick={handleLocalStorageTemizle}
+                    className="px-3 py-1 bg-red-900/50 text-red-300 text-sm rounded-lg hover:bg-red-900/70"
+                    title="Tüm kayıtlı günlükleri sil"
+                  >
+                    <FaDatabase className="inline mr-1" />
+                    Temizle
+                  </button>
+                )}
               </div>
             </div>
             
             <div className="flex flex-wrap gap-4">
-              <div className="bg-blue-900/30 rounded-lg px-4 py-2">
+              <div className={`rounded-lg px-4 py-2 ${dataSource === 'localStorage' ? 'bg-green-900/30' : 'bg-blue-900/30'}`}>
                 <p className="text-gray-300">
                   <span className="font-bold text-white">{toplamGunluk}</span> Toplam Günlük
                 </p>
@@ -269,11 +304,28 @@ function Gunlukler() {
               </div>
               <div className="bg-yellow-900/30 rounded-lg px-4 py-2">
                 <p className="text-gray-300">
-                  Yıl: <span className="font-bold text-white">2026</span>
+                  Kaynak: <span className="font-bold text-white">
+                    {dataSource === 'localStorage' ? 'Kayıtlı Veriler' : 'Demo Veriler'}
+                  </span>
                 </p>
               </div>
             </div>
           </div>
+
+          {/* Veri Kaynağı Bilgisi */}
+          {dataSource === 'demo' && (
+            <div className="mb-6 bg-yellow-900/30 rounded-xl p-4 border border-yellow-700/50">
+              <div className="flex items-center">
+                <FaDatabase className="text-yellow-400 mr-3" />
+                <div>
+                  <p className="text-yellow-200 font-semibold">Demo Modunda Görüntüleniyor</p>
+                  <p className="text-gray-300 text-sm">
+                    Henüz kayıtlı günlüğünüz yok. "Yeni Günlük" butonuna tıklayarak ilk günlüğünüzü yazın!
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Filtreler */}
           <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-gray-700">
@@ -346,115 +398,132 @@ function Gunlukler() {
             </div>
           </div>
 
+          {/* Yükleniyor */}
+          {loading && (
+            <div className="text-center py-12">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500 mb-4"></div>
+              <p className="text-gray-300">Günlükler yükleniyor...</p>
+            </div>
+          )}
+
           {/* Günlük Listesi */}
-          <div className="space-y-6">
-            {filtrelenmisGunlukler.length > 0 ? (
-              filtrelenmisGunlukler.map((gunluk) => (
-                <div 
-                  key={gunluk.id} 
-                  className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-yellow-500/50 transition-colors group"
-                >
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-                    {/* Sol: Bilgiler */}
-                    <div className="flex-1">
-                      <div className="flex items-center gap-4 mb-3">
-                        <span className="text-4xl group-hover:scale-110 transition-transform">{gunluk.ayEvresi.split(' ')[0]}</span>
-                        <div>
-                          <h3 className="text-xl font-bold text-white">
-                            {gunluk.ayEvresi}
-                          </h3>
-                          <div className="flex flex-wrap items-center gap-4 text-gray-400 mt-1">
-                            <span className="flex items-center">
-                              <FaCalendarAlt className="mr-2" />
-                              {gunluk.tarih}
-                            </span>
-                            <span className="flex items-center">
-                              {gunluk.havaDurumu}
-                            </span>
-                            <span className="text-sm bg-gray-900/50 px-2 py-1 rounded">
-                              ID: {gunluk.id}
-                            </span>
+          {!loading && (
+            <div className="space-y-6">
+              {filtrelenmisGunlukler.length > 0 ? (
+                filtrelenmisGunlukler.map((gunluk) => (
+                  <div 
+                    key={gunluk.id} 
+                    className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-yellow-500/50 transition-colors group"
+                  >
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                      {/* Sol: Bilgiler */}
+                      <div className="flex-1">
+                        <div className="flex items-center gap-4 mb-3">
+                          <span className="text-4xl group-hover:scale-110 transition-transform">{gunluk.ayEvresi.split(' ')[0]}</span>
+                          <div>
+                            <h3 className="text-xl font-bold text-white">
+                              {gunluk.ayEvresi}
+                            </h3>
+                            <div className="flex flex-wrap items-center gap-4 text-gray-400 mt-1">
+                              <span className="flex items-center">
+                                <FaCalendarAlt className="mr-2" />
+                                {gunluk.tarih}
+                              </span>
+                              <span className="flex items-center">
+                                {gunluk.havaDurumu}
+                              </span>
+                              <span className="text-sm bg-gray-900/50 px-2 py-1 rounded">
+                                ID: {gunluk.id}
+                              </span>
+                              {dataSource === 'localStorage' && (
+                                <span className="text-xs text-green-400 bg-green-900/30 px-2 py-1 rounded">
+                                  ✅ Kayıtlı
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
+                        
+                        <p className="text-gray-300 line-clamp-2 mb-3">
+                          "{gunluk.gozlem}"
+                        </p>
+                        
+                        {gunluk.notlar && (
+                          <div className="p-3 bg-gray-900/50 rounded-lg border-l-4 border-yellow-500/50">
+                            <p className="text-gray-400">
+                              <strong>📝 Not:</strong> {gunluk.notlar}
+                            </p>
+                          </div>
+                        )}
                       </div>
-                      
-                      <p className="text-gray-300 line-clamp-2 mb-3">
-                        "{gunluk.gozlem}"
-                      </p>
-                      
-                      {gunluk.notlar && (
-                        <div className="p-3 bg-gray-900/50 rounded-lg border-l-4 border-yellow-500/50">
-                          <p className="text-gray-400">
-                            <strong>📝 Not:</strong> {gunluk.notlar}
-                          </p>
-                        </div>
-                      )}
-                    </div>
 
-                    {/* Sağ: Butonlar */}
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      <button
-                        onClick={() => handleGunlukDetay(gunluk.id)}
-                        className="flex items-center justify-center px-4 py-2 bg-blue-900/50 text-blue-300 rounded-lg hover:bg-blue-900/70 transition-colors hover:scale-105"
-                      >
-                        <FaEye className="mr-2" />
-                        Detay
-                      </button>
-                      <button
-                        onClick={() => handleGunlukDuzenle(gunluk.id)}
-                        className="flex items-center justify-center px-4 py-2 bg-yellow-900/50 text-yellow-300 rounded-lg hover:bg-yellow-900/70 transition-colors hover:scale-105"
-                      >
-                        <FaEdit className="mr-2" />
-                        Düzenle
-                      </button>
-                      <button
-                        onClick={() => handleGunlukSil(gunluk.id)}
-                        className="flex items-center justify-center px-4 py-2 bg-red-900/50 text-red-300 rounded-lg hover:bg-red-900/70 transition-colors hover:scale-105"
-                      >
-                        <FaTrash className="mr-2" />
-                        Sil
-                      </button>
+                      {/* Sağ: Butonlar */}
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <button
+                          onClick={() => handleGunlukDetay(gunluk.id)}
+                          className="flex items-center justify-center px-4 py-2 bg-blue-900/50 text-blue-300 rounded-lg hover:bg-blue-900/70 transition-colors hover:scale-105"
+                        >
+                          <FaEye className="mr-2" />
+                          Detay
+                        </button>
+                        <button
+                          onClick={() => handleGunlukDuzenle(gunluk.id)}
+                          className="flex items-center justify-center px-4 py-2 bg-yellow-900/50 text-yellow-300 rounded-lg hover:bg-yellow-900/70 transition-colors hover:scale-105"
+                        >
+                          <FaEdit className="mr-2" />
+                          Düzenle
+                        </button>
+                        <button
+                          onClick={() => handleGunlukSil(gunluk.id)}
+                          className="flex items-center justify-center px-4 py-2 bg-red-900/50 text-red-300 rounded-lg hover:bg-red-900/70 transition-colors hover:scale-105"
+                        >
+                          <FaTrash className="mr-2" />
+                          Sil
+                        </button>
+                      </div>
                     </div>
                   </div>
+                ))
+              ) : (
+                /* Boş liste durumu */
+                <div className="text-center py-12 bg-gray-800/50 rounded-2xl border border-gray-700">
+                  <div className="text-6xl mb-4">📝</div>
+                  <h3 className="text-2xl font-bold text-white mb-2">
+                    Günlük Bulunamadı
+                  </h3>
+                  <p className="text-gray-300 mb-6 max-w-md mx-auto">
+                    {dataSource === 'localStorage' 
+                      ? 'Filtrelere uygun günlük bulunamadı.' 
+                      : 'Henüz günlük yazmadınız. İlk günlüğünüzü yazmaya ne dersiniz?'}
+                  </p>
+                  <div className="space-x-4">
+                    <button
+                      onClick={() => setFiltreler({ arama: '', ayEvresi: '', baslangicTarihi: '', bitisTarihi: '' })}
+                      className="px-6 py-2 bg-gradient-to-r from-blue-900/50 to-purple-900/50 text-blue-300 font-semibold rounded-lg hover:from-blue-900/70 hover:to-purple-900/70 transition-colors border border-blue-700/50 hover:scale-105"
+                    >
+                      Filtreleri Temizle
+                    </button>
+                    <button
+                      onClick={handleYeniGunluk}
+                      className="inline-block px-6 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-semibold rounded-lg hover:from-yellow-600 hover:to-orange-600 transition-colors hover:scale-105"
+                    >
+                      {dataSource === 'localStorage' ? 'Yeni Günlük Yaz' : 'İlk Günlüğü Yaz'}
+                    </button>
+                  </div>
                 </div>
-              ))
-            ) : (
-              /* Boş liste durumu */
-              <div className="text-center py-12 bg-gray-800/50 rounded-2xl border border-gray-700">
-                <div className="text-6xl mb-4">📝</div>
-                <h3 className="text-2xl font-bold text-white mb-2">
-                  Günlük Bulunamadı
-                </h3>
-                <p className="text-gray-300 mb-6 max-w-md mx-auto">
-                  Filtrelere uygun günlük bulunamadı veya henüz günlük yazmadınız.
-                </p>
-                <div className="space-x-4">
-                  <button
-                    onClick={() => setFiltreler({ arama: '', ayEvresi: '', baslangicTarihi: '', bitisTarihi: '' })}
-                    className="px-6 py-2 bg-gradient-to-r from-blue-900/50 to-purple-900/50 text-blue-300 font-semibold rounded-lg hover:from-blue-900/70 hover:to-purple-900/70 transition-colors border border-blue-700/50 hover:scale-105"
-                  >
-                    Filtreleri Temizle
-                  </button>
-                  <button
-                    onClick={handleYeniGunluk}
-                    className="inline-block px-6 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-semibold rounded-lg hover:from-yellow-600 hover:to-orange-600 transition-colors hover:scale-105"
-                  >
-                    Yeni Günlük Yaz
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
 
           {/* Sayfalama Bilgisi */}
-          {filtrelenmisGunlukler.length > 0 && (
+          {!loading && filtrelenmisGunlukler.length > 0 && (
             <div className="mt-8 flex flex-col md:flex-row items-center justify-between">
               <p className="text-gray-300 mb-4 md:mb-0">
                 {goruntulenenGunluk} günlük görüntüleniyor
               </p>
               <div className="bg-gray-800/50 rounded-lg p-4">
                 <p className="text-gray-300">
-                  📄 Sayfalama özelliği yakında eklenecek!
+                  📄 {dataSource === 'localStorage' ? 'Kayıtlı veriler gösteriliyor' : 'Demo veriler gösteriliyor'}
                 </p>
               </div>
             </div>
@@ -464,14 +533,16 @@ function Gunlukler() {
           <div className="mt-8 bg-blue-900/30 rounded-xl p-6 border border-blue-700/50">
             <div className="flex items-center mb-4">
               <h3 className="text-xl font-bold text-white">
-                🎯 Demo Modu
+                {dataSource === 'localStorage' ? '💾 Kayıtlı Günlükler' : '🎯 Demo Modu'}
               </h3>
               <span className="ml-3 px-2 py-1 bg-yellow-900/50 text-yellow-300 text-xs rounded">
                 2026 YILI
               </span>
             </div>
             <p className="text-gray-300 mb-4">
-              Şu anda demo verilerle çalışıyorsunuz. Firebase eklenince gerçek günlükleriniz yüklenecek.
+              {dataSource === 'localStorage' 
+                ? `Şu anda ${toplamGunluk} kayıtlı günlüğünüzü görüntülüyorsunuz.`
+                : 'Henüz kayıtlı günlüğünüz yok. Yeni günlük yazarak başlayabilirsiniz.'}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="p-3 bg-gray-900/50 rounded-lg">
@@ -481,12 +552,12 @@ function Gunlukler() {
               </div>
               <div className="p-3 bg-gray-900/50 rounded-lg">
                 <p className="text-gray-400 text-sm">
-                  <strong>🔍 Filtre:</strong> Arama ve ay evresi
+                  <strong>🔍 Veri Kaynağı:</strong> {dataSource === 'localStorage' ? 'LocalStorage' : 'Demo'}
                 </p>
               </div>
               <div className="p-3 bg-gray-900/50 rounded-lg">
                 <p className="text-gray-400 text-sm">
-                  <strong>⚡ İşlemler:</strong> Detay, düzenle, sil
+                  <strong>⚡ Durum:</strong> {loading ? 'Yükleniyor...' : 'Hazır'}
                 </p>
               </div>
             </div>
@@ -498,10 +569,12 @@ function Gunlukler() {
       <footer className="py-8 border-t border-gray-800 mt-12">
         <div className="container mx-auto px-4 text-center">
           <p className="text-gray-400">
-            © {new Date().getFullYear()} Ay Günlüğü - Geçmiş Günlükler
+            © 2026 Ay Günlüğü - Geçmiş Günlükler
           </p>
           <p className="text-gray-500 text-sm mt-2">
-            Tüm ay gözlemleriniz burada saklanır. İstediğiniz zaman inceleyebilirsiniz.
+            {dataSource === 'localStorage' 
+              ? 'Kayıtlı günlükleriniz burada saklanır.' 
+              : 'İlk günlüğünüzü yazmaya başlayın!'}
           </p>
         </div>
       </footer>
