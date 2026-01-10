@@ -21,7 +21,7 @@ function OgrenciDashboard() {
   const [istatistikler] = useState({
     toplamGunluk: 12,
     enCokYazilanEvre: "Dolunay",
-    sonGiris: "10 Ocak 2026"  // 2024 → 2026
+    sonGiris: "10 Ocak 2026"
   });
 
   const [sonGunlukler] = useState([
@@ -31,13 +31,13 @@ function OgrenciDashboard() {
   ]);
 
   const [bugununBilgisi] = useState({
-    tarih: "10 Ocak 2026",  // 2024 → 2026 (bugünün tarihi)
+    tarih: "10 Ocak 2026",
     ayEvresi: "🌖 Son Dördün",
     ayDurumu: "Ayın yarısı görünüyor, hafif bulutlu"
   });
 
   const handleCikis = () => {
-    alert('Firebase eklenince gerçek çıkış yapılacak');
+    // Firebase eklenince gerçek çıkış yapılacak
     navigate('/');
   };
 
@@ -46,19 +46,24 @@ function OgrenciDashboard() {
   };
 
   const handleGecmisGunlukler = () => {
-    alert('Geçmiş günlükler sayfası yakında eklenecek!');
+    // Bu butonu düzelttim: /Gunlukler sayfasına yönlendiriyor
+    navigate('/Gunlukler');
   };
 
   const handleAyTakvimi = () => {
-    alert('Ay takvimi sayfası yakında eklenecek!');
+    // Bu butonu düzelttim: /AyTakvimi sayfasına yönlendiriyor
+    navigate('/AyTakvimi');
   };
 
   const handleGunlukDetay = (id) => {
+    // Günlük detay sayfası için - örnek olarak id ile yönlendirme
     alert(`Günlük detay sayfası yakında eklenecek! ID: ${id}`);
+    // Gelecekte: navigate(`/GunlukDetay/${id}`);
   };
 
   const handleTumGunlukler = () => {
-    alert('Tüm günlükler sayfası yakında eklenecek!');
+    // Tüm günlükler butonunu da düzelttim
+    navigate('/Gunlukler');
   };
 
   return (
