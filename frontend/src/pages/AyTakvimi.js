@@ -265,7 +265,7 @@ function AyTakvimi() {
                     ${gun.günlükVar ? 'hover:border-green-500 hover:bg-green-900/20' : ''}
                     ${!gun.currentMonth ? 'opacity-50' : ''}
                   `}
-                  onClick={() => gun.currentMonth && handleGunlukYaz(gun.date, gun.dateString)}
+                  onClick={() => gun.currentMonth && gun.dateString && handleGunlukYaz(gun.date, gun.dateString)}
                 >
                   <div className="flex justify-between items-start mb-1">
                     <div className={`
