@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  FaMoon, FaCalendarAlt, FaCamera, 
-  FaArrowLeft, FaSave, FaImage 
+  FaMoon, FaCalendarAlt, 
+  FaArrowLeft, FaSave 
 } from 'react-icons/fa';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 
@@ -38,8 +38,6 @@ function YeniGunluk() {
     gozlem: ''
   });
 
-  const [foto, setFoto] = useState(null);
-  const [fotoPreview, setFotoPreview] = useState(null);
   const [karakterSayisi, setKarakterSayisi] = useState(0);
 
   useEffect(() => {
@@ -75,28 +73,6 @@ function YeniGunluk() {
     }
   };
 
-  const handleFotoChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        alert('Dosya boyutu 5MB\'dan küçük olmalıdır!');
-        return;
-      }
-      
-      setFoto(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFotoPreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleFotoKaldir = () => {
-    setFoto(null);
-    setFotoPreview(null);
-  };
-
   const handleSubmit = (e) => {
     e.preventDefault();
     
@@ -104,9 +80,6 @@ function YeniGunluk() {
       alert('Lütfen ayın evresini seçin!');
       return;
     }
-    
-    // NOT: Minimum karakter kontrolü kaldırıldı
-    // Kullanıcı isterse boş da bırakabilir
     
     const secilenAyEvresi = ayEvreleri.find(e => e.deger === formData.ayEvresi);
     
@@ -121,8 +94,8 @@ function YeniGunluk() {
       tamIcerik: formData.gozlem || '',
       goruntulenme: 0,
       duzenlemeTarihi: null,
-      olusturmaTarihi: new Date().toLocaleString('tr-TR'),
-      foto: foto ? foto.name : null
+      olusturmaTarihi: new Date().toLocaleString('tr-TR')
+      // FOTO ALANI KALDIRILDI
     };
     
     const mevcutGunlukler = JSON.parse(localStorage.getItem('gunlukVerileri') || '[]');
@@ -288,55 +261,7 @@ function YeniGunluk() {
                     </div>
                   </div>
 
-                  {/* Fotoğraf */}
-                  <div>
-                    <label className="block text-gray-300 mb-3 text-lg font-semibold flex items-center">
-                      <FaCamera className="mr-2 text-purple-400" />
-                      Fotoğraf Ekle (Opsiyonel)
-                    </label>
-                    
-                    <div className="border-2 border-dashed border-gray-700 rounded-2xl p-8 text-center hover:border-purple-500 transition-colors">
-                      {fotoPreview ? (
-                        <div className="space-y-4">
-                          <div className="relative mx-auto max-w-md">
-                            <img 
-                              src={fotoPreview} 
-                              alt="Önizleme" 
-                              className="rounded-lg w-full h-48 object-cover"
-                            />
-                            <button
-                              type="button"
-                              onClick={handleFotoKaldir}
-                              className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full hover:bg-red-700 hover:scale-110 transition-transform"
-                            >
-                              ✕
-                            </button>
-                          </div>
-                          <p className="text-gray-300">{foto.name}</p>
-                        </div>
-                      ) : (
-                        <div className="space-y-4">
-                          <div className="text-5xl text-gray-500">
-                            <FaImage />
-                          </div>
-                          <p className="text-gray-400">Ay fotoğrafını buraya sürükle veya tıkla</p>
-                          <label className="inline-block px-6 py-3 bg-gradient-to-r from-purple-900/50 to-blue-900/50 text-purple-300 font-semibold rounded-lg hover:from-purple-900/70 hover:to-blue-900/70 transition-colors border border-purple-700/50 cursor-pointer transform hover:scale-105">
-                            <FaCamera className="inline mr-2" />
-                            📸 Fotoğraf Seç
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={handleFotoChange}
-                              className="hidden"
-                            />
-                          </label>
-                        </div>
-                      )}
-                    </div>
-                    <p className="text-gray-400 text-sm mt-2">
-                      Maksimum 5MB, JPG veya PNG formatında.
-                    </p>
-                  </div>
+                  {/* FOTOĞRAF BÖLÜMÜ TAMAMEN KALDIRILDI */}
 
                   {/* Demo ve Kaydet Butonları */}
                   <div className="space-y-4">
@@ -363,9 +288,8 @@ function YeniGunluk() {
               </div>
             </div>
 
-            {/* Sağ: Yardım ve Bilgi - SADECE İPUÇLARI BÖLÜMÜ KALDI */}
+            {/* Sağ: Yardım ve Bilgi - SADECE İPUÇLARI BÖLÜMÜ */}
             <div className="space-y-6">
-              {/* SADECE İPUÇLARI BÖLÜMÜ - DİĞERLERİ KALDIRILDI */}
               <div className="bg-blue-900/30 rounded-xl p-6 border border-blue-700/50">
                 <h3 className="text-xl font-bold text-white mb-3">
                   💡 İpuçları
