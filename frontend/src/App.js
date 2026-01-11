@@ -1,7 +1,7 @@
 import React from 'react';
 import './App.css';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { Toaster } from '@/components/ui/toaster'; // BU SATIRI EKLEYİN
+import { Toaster } from '@/components/ui/toaster';
 
 // Ana sayfaları import et
 import HomePage from './pages/HomePage';
@@ -11,6 +11,7 @@ import OgrenciGiris from './pages/OgrenciGiris';
 import OgrenciDashboard from './pages/OgrenciDashboard';
 import YeniGunluk from './pages/YeniGunluk';
 import Gunlukler from './pages/Gunlukler';
+import OgretmenDashboard from './pages/OgretmenDashboard'; // YENİ EKLENDİ
 
 // AyTakvimi.js dosyası var mı kontrol et - yoksa placeholder kullan
 let AyTakvimi;
@@ -38,27 +39,6 @@ try {
   );
 }
 
-// OgretmenDashboard için placeholder (henüz oluşturulmadı)
-const OgretmenDashboard = () => (
-  <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white p-8">
-    <div className="max-w-4xl mx-auto">
-      <h1 className="text-4xl font-bold mb-6">👨‍🏫 ÖĞRETMEN DASHBOARD</h1>
-      <div className="bg-blue-900/30 p-6 rounded-xl mb-6">
-        <p className="text-blue-200">Bu sayfa yakında eklenecek!</p>
-        <p className="text-gray-300 mt-2">
-          Öğretmen paneli şu anda geliştirme aşamasındadır.
-        </p>
-      </div>
-      <a 
-        href="/" 
-        className="inline-block px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600"
-      >
-        Ana Sayfaya Dön
-      </a>
-    </div>
-  </div>
-);
-
 // GunlukDetay için placeholder
 const GunlukDetay = () => (
   <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white p-8">
@@ -81,16 +61,13 @@ const GunlukDetay = () => (
 );
 
 function App() {
-  // 2026 yılı bilgisi - tüm uygulama için
   const currentYear = 2026;
   const appVersion = "1.0.0";
 
   return (
     <div className="App">
-      {/* Toast bildirimleri için Toaster bileşeni - BU SATIRI EKLEYİN */}
       <Toaster />
 
-      {/* Uygulama Bilgi Notu - Sadece geliştirme modunda göster */}
       {process.env.NODE_ENV === 'development' && (
         <div className="fixed top-0 left-0 right-0 bg-yellow-900/80 text-yellow-200 text-center py-1 text-sm z-50 backdrop-blur-sm">
           🚀 Demo Modu - {currentYear} Yılı - v{appVersion} - Tüm tarihler {currentYear} yılına ayarlanmıştır
@@ -112,14 +89,16 @@ function App() {
           <Route path="/AyTakvimi" element={<AyTakvimi />} />
           <Route path="/GunlukDetay/:id" element={<GunlukDetay />} />
           
-          {/* ÖĞRETMEN PANELİ - YAKINDA */}
+          {/* ÖĞRETMEN PANELİ - YENİ EKLENDİ */}
           <Route path="/OgretmenDashboard" element={<OgretmenDashboard />} />
+          
+          {/* ESKİ PLACEHOLDER'LAR (İSTEĞE BAĞLI SİLEBİLİRSİN) */}
           <Route path="/OgretmenGunlukler" element={
             <div className="min-h-screen bg-gray-900 text-white p-8">
               <div className="max-w-4xl mx-auto">
                 <h1 className="text-3xl font-bold mb-4">📚 Öğretmen Günlükler Sayfası</h1>
-                <p className="text-gray-300 mb-6">Bu sayfa yakında eklenecek!</p>
-                <a href="/" className="text-blue-400 hover:text-blue-300">Ana Sayfa</a>
+                <p className="text-gray-300 mb-6">Artık OgretmenDashboard kullanılıyor!</p>
+                <a href="/OgretmenDashboard" className="text-blue-400 hover:text-blue-300">Öğretmen Paneline Git</a>
               </div>
             </div>
           } />
@@ -129,12 +108,12 @@ function App() {
               <div className="max-w-4xl mx-auto">
                 <h1 className="text-3xl font-bold mb-4">👥 Sınıf Yönetimi</h1>
                 <p className="text-gray-300 mb-6">Bu sayfa yakında eklenecek!</p>
-                <a href="/" className="text-blue-400 hover:text-blue-300">Ana Sayfa</a>
+                <a href="/OgretmenDashboard" className="text-blue-400 hover:text-blue-300">Öğretmen Paneline Git</a>
               </div>
             </div>
           } />
           
-          {/* Sayfa bulunamadı - 404 (2026 yılına uygun güncellendi) */}
+          {/* 404 SAYFASI */}
           <Route path="*" element={
             <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white flex items-center justify-center p-4">
               <div className="text-center p-8 bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700 max-w-md w-full">
@@ -153,22 +132,16 @@ function App() {
                   <p className="text-sm text-gray-400 mb-2">📍 Hızlı Yönlendirmeler:</p>
                   <div className="flex flex-col gap-2">
                     <a 
+                      href="/OgretmenDashboard" 
+                      className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors text-gray-300 hover:text-white"
+                    >
+                      👨‍🏫 Öğretmen Paneli
+                    </a>
+                    <a 
                       href="/OgrenciDashboard" 
                       className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors text-gray-300 hover:text-white"
                     >
                       📊 Öğrenci Dashboard
-                    </a>
-                    <a 
-                      href="/Gunlukler" 
-                      className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors text-gray-300 hover:text-white"
-                    >
-                      📚 Geçmiş Günlükler
-                    </a>
-                    <a 
-                      href="/AyTakvimi" 
-                      className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors text-gray-300 hover:text-white"
-                    >
-                      🌕 Ay Takvimi
                     </a>
                   </div>
                 </div>
