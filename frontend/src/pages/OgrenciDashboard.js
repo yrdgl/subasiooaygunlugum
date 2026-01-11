@@ -18,12 +18,6 @@ function OgrenciDashboard() {
     ogrenciNo: "12345"
   });
 
-  const [istatistikler] = useState({
-    toplamGunluk: 12,
-    enCokYazilanEvre: "Dolunay",
-    sonGiris: "10 Ocak 2026"
-  });
-
   const [sonGunlukler] = useState([
     { id: 1, tarih: "9 Oca 2026", ayEvresi: "🌕 Dolunay", durum: "Çok parlak ve büyük görünüyordu" },
     { id: 2, tarih: "8 Oca 2026", ayEvresi: "🌔 Şişkin Ay", durum: "Bulutlar arasında kayboluyordu" },
@@ -46,23 +40,18 @@ function OgrenciDashboard() {
   };
 
   const handleGecmisGunlukler = () => {
-    // Bu butonu düzelttim: /Gunlukler sayfasına yönlendiriyor
     navigate('/Gunlukler');
   };
 
   const handleAyTakvimi = () => {
-    // Bu butonu düzelttim: /AyTakvimi sayfasına yönlendiriyor
     navigate('/AyTakvimi');
   };
 
   const handleGunlukDetay = (id) => {
-    // Günlük detay sayfası için - örnek olarak id ile yönlendirme
     alert(`Günlük detay sayfası yakında eklenecek! ID: ${id}`);
-    // Gelecekte: navigate(`/GunlukDetay/${id}`);
   };
 
   const handleTumGunlukler = () => {
-    // Tüm günlükler butonunu da düzelttim
     navigate('/Gunlukler');
   };
 
@@ -203,61 +192,9 @@ function OgrenciDashboard() {
             </button>
           </div>
 
-          {/* İki Sütun: İstatistikler ve Son Günlükler */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Sol: İstatistikler */}
-            <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700">
-              <div className="flex items-center mb-6">
-                <FaChartBar className="text-2xl text-yellow-400 mr-3" />
-                <h2 className="text-2xl font-bold">İstatistiklerin</h2>
-              </div>
-              
-              <div className="space-y-4">
-                {/* Toplam Günlük */}
-                <div className="flex items-center justify-between p-4 bg-gray-900/50 rounded-xl">
-                  <div className="flex items-center">
-                    <div className="w-10 h-10 rounded-full bg-blue-900/30 flex items-center justify-center mr-3">
-                      <FaBook className="text-blue-400" />
-                    </div>
-                    <div>
-                      <p className="text-gray-400">Toplam Günlük</p>
-                      <p className="text-2xl font-bold">{istatistikler.toplamGunluk} yazı</p>
-                    </div>
-                  </div>
-                  <div className="text-3xl">📝</div>
-                </div>
-
-                {/* En Çok Yazılan */}
-                <div className="flex items-center justify-between p-4 bg-gray-900/50 rounded-xl">
-                  <div className="flex items-center">
-                    <div className="w-10 h-10 rounded-full bg-purple-900/30 flex items-center justify-center mr-3">
-                      <FaStar className="text-purple-400" />
-                    </div>
-                    <div>
-                      <p className="text-gray-400">En Çok Yazılan Evre</p>
-                      <p className="text-xl font-bold">{istatistikler.enCokYazilanEvre}</p>
-                    </div>
-                  </div>
-                  <div className="text-3xl">🌕</div>
-                </div>
-
-                {/* Son Giriş */}
-                <div className="flex items-center justify-between p-4 bg-gray-900/50 rounded-xl">
-                  <div className="flex items-center">
-                    <div className="w-10 h-10 rounded-full bg-green-900/30 flex items-center justify-center mr-3">
-                      <FaCalendarAlt className="text-green-400" />
-                    </div>
-                    <div>
-                      <p className="text-gray-400">Son Giriş Tarihi</p>
-                      <p className="text-xl font-bold">{istatistikler.sonGiris}</p>
-                    </div>
-                  </div>
-                  <div className="text-3xl">📅</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Sağ: Son Günlükler */}
+          {/* Sadece Son Günlükler - İstatistikler kaldırıldı */}
+          <div className="max-w-6xl mx-auto">
+            {/* Son Günlükler - Tam Genişlik */}
             <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center">
