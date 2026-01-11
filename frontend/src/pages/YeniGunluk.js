@@ -54,17 +54,18 @@ function YeniGunluk() {
     }
   }, [location]);
 
-  const ayEvreleri = [
-    { emoji: '🌑', ad: 'Yeni Ay', deger: 'yeni' },
-    { emoji: '🌒', ad: 'Hilal (İlk)', deger: 'hilal-ilk' },
-    { emoji: '🌓', ad: 'İlk Dördün', deger: 'ilk-dordun' },
-    { emoji: '🌔', ad: 'Şişkin Ay', deger: 'siskin' },
-    { emoji: '🌕', ad: 'Dolunay', deger: 'dolunay' },
-    { emoji: '🌖', ad: 'Şişkin Ay (Son)', deger: 'siskin-son' },
-    { emoji: '🌗', ad: 'Son Dördün', deger: 'son-dordun' },
-    { emoji: '🌘', ad: 'Hilal (Son)', deger: 'hilal-son' },
-    { emoji: '🌙', ad: 'Ay Gözükmüyor', deger: 'goktuk' }
-  ];
+  // YeniGunluk.js'deki ayEvreleri array'ini bu şekilde değiştirin:
+
+const ayEvreleri = [
+  { emoji: '🌑', ad: 'Yeni Ay', deger: 'yeni' },
+  { emoji: '🌒', ad: 'Hilal', deger: 'hilal' },
+  { emoji: '🌓', ad: 'İlk Dördün', deger: 'ilk-dordun' },
+  { emoji: '🌔', ad: 'Şişkin Ay', deger: 'siskin' },
+  { emoji: '🌕', ad: 'Dolunay', deger: 'dolunay' },
+  { emoji: '🌖', ad: 'Şişkin Ay', deger: 'siskin-son' },
+  { emoji: '🌗', ad: 'Son Dördün', deger: 'son-dordun' },
+  { emoji: '🌘', ad: 'Hilal', deger: 'hilal-son' }
+];
 
   const havaDurumlari = [
     { emoji: '☀️', ad: 'Güneşli', deger: 'gunesli' },

@@ -1,49 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import { 
   FaMoon, FaSearch, FaFilter, FaCalendarAlt, 
-  FaArrowLeft, FaEdit, FaTrash, FaEye, FaStar,
+  FaArrowLeft, FaEdit, FaTrash, FaEye,
   FaSave, FaTimes, FaCheck, FaPlus
 } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 
 function Gunlukler() {
-  // Başlangıç demo günlük verileri
+  // Doğru ay evreleri ile demo veriler
   const initialGunlukler = [
     {
       id: 1,
-      baslik: "🌙 Hilal'in İlk Görünüşü",
       tarih: "10 Ocak 2026",
-      ayEvresi: "🌙",
-      evreAdi: "Hilal",
+      ayEvresi: "🌒", // Hilal
       icerik: "Hilal ayı bugün çok net göründü. İncecik bir hilal şeklindeydi...",
       tamIcerik: "Hilal ayı bugün çok net göründü. İncecik bir hilal şeklindeydi. Hava açıktı ve yıldızlar parlaktı. Gökyüzünde tek başına parlıyordu.",
-      not: "Gözlem saat: 20:30, hava sıcaklığı: 15°C",
       goruntulenme: 5,
-      favori: true,
       duzenlemeTarihi: null
     },
     {
       id: 2,
-      baslik: "🌕 Dolunay Gözlemi",
       tarih: "15 Ocak 2026",
-      ayEvresi: "🌕",
-      evreAdi: "Dolunay",
+      ayEvresi: "🌕", // Dolunay
       icerik: "Ay bugün tam daire şeklindeydi. Çok parlak ve büyüktü...",
       tamIcerik: "Ay bugün tam daire şeklindeydi. Çok parlak ve büyüktü. Bulutlar arasında kaybolup tekrar görünüyordu. Deniz kenarından izlemek harikaydı.",
-      not: "Fotoğraf çekmeyi unutma, tripod kullan",
       goruntulenme: 3,
-      favori: false,
       duzenlemeTarihi: null
     }
   ];
 
-  // LocalStorage'dan günlükleri al veya başlangıç verilerini kullan
   const [gunlukler, setGunlukler] = useState(() => {
     const saved = localStorage.getItem('gunlukVerileri');
     return saved ? JSON.parse(saved) : initialGunlukler;
   });
 
-  // LocalStorage'a kaydet
   useEffect(() => {
     localStorage.setItem('gunlukVerileri', JSON.stringify(gunlukler));
   }, [gunlukler]);
@@ -54,32 +44,38 @@ function Gunlukler() {
     siralama: 'yeniden-eskive'
   });
 
-  // DÜZELTME: Tek state'te tutuyoruz
   const [modalDurumu, setModalDurumu] = useState({
     goster: false,
-    mod: 'detay', // 'detay' veya 'duzenle'
+    mod: 'detay',
     seciliGunluk: null
   });
 
   const [duzenlemeVerisi, setDuzenlemeVerisi] = useState(null);
 
+  // Doğru ay evreleri listesi
+  const ayEvreleri = [
+    { emoji: '🌑', ad: 'Yeni Ay' },
+    { emoji: '🌒', ad: 'Hilal' },
+    { emoji: '🌓', ad: 'İlk Dördün' },
+    { emoji: '🌔', ad: 'Şişkin Ay' },
+    { emoji: '🌕', ad: 'Dolunay' },
+    { emoji: '🌖', ad: 'Şişkin Ay' },
+    { emoji: '🌗', ad: 'Son Dördün' },
+    { emoji: '🌘', ad: 'Hilal' }
+  ];
+
   // Filtreleme
   const filtrelenmisGunlukler = gunlukler.filter(gunluk => {
-    // Arama filtresi
-    if (filtre.arama && !gunluk.baslik.toLowerCase().includes(filtre.arama.toLowerCase()) && 
-        !gunluk.icerik.toLowerCase().includes(filtre.arama.toLowerCase()) &&
-        !gunluk.not.toLowerCase().includes(filtre.arama.toLowerCase())) {
+    if (filtre.arama && !gunluk.tamIcerik.toLowerCase().includes(filtre.arama.toLowerCase())) {
       return false;
     }
     
-    // Ay evresi filtresi
-    if (filtre.ayEvresi !== 'tum' && !gunluk.evreAdi.toLowerCase().includes(filtre.ayEvresi.toLowerCase())) {
+    if (filtre.ayEvresi !== 'tum' && !gunluk.ayEvresi.includes(filtre.ayEvresi)) {
       return false;
     }
     
     return true;
   }).sort((a, b) => {
-    // Sıralama
     if (filtre.siralama === 'yeniden-eskive') {
       return b.id - a.id;
     } else {
@@ -96,7 +92,7 @@ function Gunlukler() {
   };
 
   const handleGunlukSil = (id) => {
-    if (window.confirm('Bu günlüğü silmek istediğinize emin misiniz? Bu işlem geri alınamaz!')) {
+    if (window.confirm('Bu günlüğü silmek istediğinize emin misiniz?')) {
       const yeniGunlukler = gunlukler.filter(gunluk => gunluk.id !== id);
       setGunlukler(yeniGunlukler);
       setModalDurumu({ goster: false, mod: 'detay', seciliGunluk: null });
@@ -104,9 +100,7 @@ function Gunlukler() {
     }
   };
 
-  // DETAY GÖSTER
   const handleDetayGoster = (gunluk) => {
-    // Görüntülenme sayısını artır
     const guncellenmisGunlukler = gunlukler.map(g => 
       g.id === gunluk.id ? { ...g, goruntulenme: g.goruntulenme + 1 } : g
     );
@@ -119,7 +113,6 @@ function Gunlukler() {
     });
   };
 
-  // DÜZENLEMEYE BAŞLA
   const handleDuzenlemeyeBasla = (gunluk) => {
     setDuzenlemeVerisi({ ...gunluk });
     setModalDurumu({
@@ -129,10 +122,9 @@ function Gunlukler() {
     });
   };
 
-  // DÜZENLEMEYİ KAYDET
   const handleDuzenlemeKaydet = () => {
-    if (!duzenlemeVerisi.baslik.trim() || !duzenlemeVerisi.tamIcerik.trim()) {
-      alert('Başlık ve içerik boş olamaz!');
+    if (!duzenlemeVerisi.tamIcerik.trim()) {
+      alert('Gözlem içeriği boş olamaz!');
       return;
     }
 
@@ -165,29 +157,18 @@ function Gunlukler() {
     setDuzenlemeVerisi(null);
   };
 
-  const handleFavoriDegistir = (id) => {
-    const guncellenmisGunlukler = gunlukler.map(gunluk =>
-      gunluk.id === id ? { ...gunluk, favori: !gunluk.favori } : gunluk
-    );
-    setGunlukler(guncellenmisGunlukler);
-  };
-
   const handleYeniGunlukEkle = () => {
     const yeniGunluk = {
       id: Date.now(),
-      baslik: "🌙 Yeni Ay Gözlemi",
       tarih: new Date().toLocaleDateString('tr-TR', { 
         day: 'numeric', 
         month: 'long', 
         year: 'numeric' 
       }),
-      ayEvresi: "🌙",
-      evreAdi: "Hilal",
+      ayEvresi: "🌒", // Varsayılan Hilal
       icerik: "Bugünkü gözlem notlarınızı buraya yazın...",
       tamIcerik: "Bugünkü gözlem notlarınızı buraya detaylı şekilde yazın. Ayın görünümü nasıldı? Hava koşulları ne durumdaydı? Özel gözlemleriniz nelerdi?",
-      not: "Ek notlarınızı buraya yazabilirsiniz",
       goruntulenme: 0,
-      favori: false,
       duzenlemeTarihi: null
     };
 
@@ -201,13 +182,13 @@ function Gunlukler() {
     alert('🆕 Yeni günlük oluşturuldu! Şimdi düzenleyebilirsiniz.');
   };
 
-  // DÜZENLEME MODAL İÇERİĞİ
+  // DÜZENLEME MODAL İÇERİĞİ - DOĞRU AY EVRELERİ
   const renderDuzenlemeModal = () => (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
       <div className="bg-gradient-to-b from-gray-800 to-gray-900 rounded-2xl p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto border border-gray-700">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-2xl font-bold">
-            ✏️ Günlük Düzenle
+            ✏️ Günlük Düzenle - {duzenlemeVerisi?.tarih}
           </h3>
           <button
             onClick={handleModalKapat}
@@ -218,49 +199,6 @@ function Gunlukler() {
         </div>
         
         <div className="space-y-6">
-          {/* Başlık */}
-          <div>
-            <label className="block text-gray-300 mb-2 font-semibold">Başlık</label>
-            <input
-              type="text"
-              value={duzenlemeVerisi?.baslik || ''}
-              onChange={(e) => setDuzenlemeVerisi({
-                ...duzenlemeVerisi,
-                baslik: e.target.value
-              })}
-              className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-yellow-500"
-            />
-          </div>
-          
-          {/* Ay Evresi */}
-          <div>
-            <label className="block text-gray-300 mb-2 font-semibold">Ay Evresi</label>
-            <div className="grid grid-cols-4 gap-2">
-              {['🌙', '🌓', '🌕', '🌗'].map((evre) => (
-                <button
-                  key={evre}
-                  type="button"
-                  onClick={() => {
-                    let evreAdi = "Hilal";
-                    if (evre === '🌓') evreAdi = "İlk Dördün";
-                    if (evre === '🌕') evreAdi = "Dolunay";
-                    if (evre === '🌗') evreAdi = "Son Dördün";
-                    
-                    setDuzenlemeVerisi({
-                      ...duzenlemeVerisi,
-                      ayEvresi: evre,
-                      evreAdi: evreAdi,
-                      baslik: `${evre} ${duzenlemeVerisi.baslik.replace(/^[🌙🌓🌕🌗]\s*/, '')}`
-                    });
-                  }}
-                  className={`p-4 text-2xl rounded-lg ${duzenlemeVerisi?.ayEvresi === evre ? 'bg-yellow-500/20 border-2 border-yellow-500' : 'bg-gray-900 hover:bg-gray-800'}`}
-                >
-                  {evre}
-                </button>
-              ))}
-            </div>
-          </div>
-          
           {/* Tarih */}
           <div>
             <label className="block text-gray-300 mb-2 font-semibold">Tarih</label>
@@ -276,7 +214,42 @@ function Gunlukler() {
             />
           </div>
           
-          {/* Tam İçerik */}
+          {/* DOĞRU AY EVRELERİ */}
+          <div>
+            <label className="block text-gray-300 mb-2 font-semibold">Ay Evresi</label>
+            <div className="grid grid-cols-4 gap-3">
+              {ayEvreleri.map((evre, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => setDuzenlemeVerisi({
+                    ...duzenlemeVerisi,
+                    ayEvresi: evre.emoji
+                  })}
+                  className={`p-3 rounded-lg flex flex-col items-center justify-center transition-all ${
+                    duzenlemeVerisi?.ayEvresi === evre.emoji 
+                      ? 'bg-yellow-500/30 border-2 border-yellow-500 scale-105' 
+                      : 'bg-gray-900 hover:bg-gray-800 border border-gray-700'
+                  }`}
+                  title={evre.ad}
+                >
+                  <span className="text-2xl mb-1">{evre.emoji}</span>
+                  <span className="text-xs text-gray-300">{evre.ad}</span>
+                </button>
+              ))}
+            </div>
+            {duzenlemeVerisi?.ayEvresi && (
+              <div className="mt-3 p-3 bg-gray-900/50 rounded-lg">
+                <p className="text-gray-300 text-sm">
+                  Seçilen: <span className="text-yellow-300 font-semibold">
+                    {duzenlemeVerisi.ayEvresi} {ayEvreleri.find(e => e.emoji === duzenlemeVerisi.ayEvresi)?.ad}
+                  </span>
+                </p>
+              </div>
+            )}
+          </div>
+          
+          {/* Gözlem İçeriği */}
           <div>
             <label className="block text-gray-300 mb-2 font-semibold">Gözlem İçeriği</label>
             <textarea
@@ -285,41 +258,12 @@ function Gunlukler() {
                 ...duzenlemeVerisi,
                 tamIcerik: e.target.value
               })}
-              className="w-full h-48 bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-yellow-500 resize-none"
+              className="w-full h-64 bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-yellow-500 resize-none"
+              placeholder="Ay gözleminizi buraya yazın..."
             />
             <p className="text-gray-400 text-sm mt-1">
               Karakter sayısı: {(duzenlemeVerisi?.tamIcerik || '').length}
             </p>
-          </div>
-          
-          {/* Not */}
-          <div>
-            <label className="block text-gray-300 mb-2 font-semibold">Ek Notlar</label>
-            <textarea
-              value={duzenlemeVerisi?.not || ''}
-              onChange={(e) => setDuzenlemeVerisi({
-                ...duzenlemeVerisi,
-                not: e.target.value
-              })}
-              className="w-full h-32 bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-yellow-500 resize-none"
-            />
-          </div>
-          
-          {/* Favori */}
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              id="favori"
-              checked={duzenlemeVerisi?.favori || false}
-              onChange={(e) => setDuzenlemeVerisi({
-                ...duzenlemeVerisi,
-                favori: e.target.checked
-              })}
-              className="w-5 h-5 mr-2"
-            />
-            <label htmlFor="favori" className="text-gray-300">
-              Favorilere Ekle
-            </label>
           </div>
           
           {/* Butonlar */}
@@ -350,7 +294,7 @@ function Gunlukler() {
       <div className="bg-gradient-to-b from-gray-800 to-gray-900 rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-700">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-2xl font-bold">
-            {modalDurumu.seciliGunluk.ayEvresi} {modalDurumu.seciliGunluk.baslik}
+            {modalDurumu.seciliGunluk.ayEvresi} Gözlemi - {modalDurumu.seciliGunluk.tarih}
           </h3>
           <button
             onClick={handleModalKapat}
@@ -366,21 +310,13 @@ function Gunlukler() {
             <span>ID: {modalDurumu.seciliGunluk.id}</span>
             <span className="text-green-400">✅ Kayıtlı</span>
             <span>👁️ {modalDurumu.seciliGunluk.goruntulenme} görüntülenme</span>
-            {modalDurumu.seciliGunluk.favori && (
-              <span className="text-yellow-400">⭐ Favori</span>
-            )}
           </div>
           
           <div className="bg-gray-900/50 rounded-xl p-4">
-            <h4 className="font-bold mb-2">Günlük İçeriği</h4>
+            <h4 className="font-bold mb-2">Gözlem İçeriği</h4>
             <p className="text-gray-300 whitespace-pre-line">
               {modalDurumu.seciliGunluk.tamIcerik}
             </p>
-          </div>
-          
-          <div className="bg-gray-900/50 rounded-xl p-4">
-            <h4 className="font-bold mb-2">Not</h4>
-            <p className="text-gray-300">{modalDurumu.seciliGunluk.not}</p>
           </div>
           
           {modalDurumu.seciliGunluk.duzenlemeTarihi && (
@@ -419,7 +355,6 @@ function Gunlukler() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white">
-      {/* Header */}
       <header className="py-6 bg-gray-900/50 backdrop-blur-sm border-b border-gray-800">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between">
@@ -432,20 +367,17 @@ function Gunlukler() {
               </h1>
             </div>
             
-            <div className="flex items-center space-x-4">
-              <Link 
-                to="/OgrenciDashboard" 
-                className="flex items-center text-gray-300 hover:text-white transition-colors px-4 py-2 hover:bg-gray-800 rounded-lg"
-              >
-                <FaArrowLeft className="mr-2" />
-                Dashboard'a Dön
-              </Link>
-            </div>
+            <Link 
+              to="/OgrenciDashboard" 
+              className="flex items-center text-gray-300 hover:text-white transition-colors px-4 py-2 hover:bg-gray-800 rounded-lg"
+            >
+              <FaArrowLeft className="mr-2" />
+              Dashboard'a Dön
+            </Link>
           </div>
         </div>
       </header>
 
-      {/* Ana İçerik - İSTATİSTİK KARTLARI KALDIRILDI */}
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           {/* Filtreler */}
@@ -469,11 +401,10 @@ function Gunlukler() {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Arama */}
               <div className="space-y-2">
                 <label className="flex items-center text-gray-300">
                   <FaSearch className="mr-2" />
-                  Günlük başlığı veya notlarda ara
+                  Gözlem içeriğinde ara
                 </label>
                 <input
                   type="text"
@@ -484,7 +415,6 @@ function Gunlukler() {
                 />
               </div>
               
-              {/* Ay Evresi */}
               <div className="space-y-2">
                 <label className="flex items-center text-gray-300">
                   <FaFilter className="mr-2" />
@@ -496,14 +426,17 @@ function Gunlukler() {
                   onChange={(e) => setFiltre({...filtre, ayEvresi: e.target.value})}
                 >
                   <option value="tum">Tüm Ay Evreleri</option>
-                  <option value="hilal">Hilal</option>
-                  <option value="ilk">İlk Dördün</option>
-                  <option value="dolunay">Dolunay</option>
-                  <option value="son">Son Dördün</option>
+                  <option value="🌑">Yeni Ay</option>
+                  <option value="🌒">Hilal</option>
+                  <option value="🌓">İlk Dördün</option>
+                  <option value="🌔">Şişkin Ay</option>
+                  <option value="🌕">Dolunay</option>
+                  <option value="🌖">Şişkin Ay</option>
+                  <option value="🌗">Son Dördün</option>
+                  <option value="🌘">Hilal</option>
                 </select>
               </div>
               
-              {/* Sıralama */}
               <div className="space-y-2">
                 <label className="flex items-center text-gray-300">
                   <FaFilter className="mr-2" />
@@ -516,8 +449,6 @@ function Gunlukler() {
                 >
                   <option value="yeniden-eskive">Yeniden Eskiye</option>
                   <option value="eskiden-yeniye">Eskiden Yeniye</option>
-                  <option value="goruntulenme">Görüntülenme</option>
-                  <option value="favori">Favoriler</option>
                 </select>
               </div>
             </div>
@@ -553,21 +484,12 @@ function Gunlukler() {
                   className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-blue-700/50 transition-all duration-300"
                 >
                   <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-                    {/* Sol: Günlük Bilgisi */}
                     <div className="flex-1">
                       <div className="flex items-start justify-between mb-3">
                         <div>
-                          <div className="flex items-center mb-1">
-                            <button
-                              onClick={() => handleFavoriDegistir(gunluk.id)}
-                              className={`mr-2 text-xl ${gunluk.favori ? 'text-yellow-400' : 'text-gray-500 hover:text-yellow-300'}`}
-                            >
-                              {gunluk.favori ? '★' : '☆'}
-                            </button>
-                            <h4 className="text-xl font-bold inline">
-                              {gunluk.ayEvresi} {gunluk.baslik}
-                            </h4>
-                          </div>
+                          <h4 className="text-xl font-bold mb-1">
+                            {gunluk.ayEvresi} {ayEvreleri.find(e => e.emoji === gunluk.ayEvresi)?.ad || 'Gözlem'} - {gunluk.tarih}
+                          </h4>
                           <div className="flex items-center space-x-4 text-sm text-gray-400">
                             <span>{gunluk.tarih}</span>
                             <span>ID: {gunluk.id}</span>
@@ -582,13 +504,9 @@ function Gunlukler() {
                         <p className="text-gray-300 line-clamp-2">
                           {gunluk.icerik}
                         </p>
-                        <div className="mt-2 text-sm text-gray-500">
-                          <strong>Not:</strong> {gunluk.not}
-                        </div>
                       </div>
                     </div>
                     
-                    {/* Sağ: Butonlar */}
                     <div className="flex flex-col space-y-2">
                       <button
                         onClick={() => handleDetayGoster(gunluk)}
@@ -624,41 +542,13 @@ function Gunlukler() {
               ? renderDuzenlemeModal()
               : renderDetayModal()
           )}
-
-          {/* Bilgilendirme */}
-          <div className="mt-8 bg-blue-900/30 rounded-xl p-6 border border-blue-700/50">
-            <h3 className="text-xl font-bold text-white mb-3">
-              💡 Kullanım Kılavuzu
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-3 bg-gray-900/50 rounded-lg">
-                <p className="text-gray-400 text-sm">
-                  <strong>1. Detay Görüntüle:</strong> Detay butonuna tıkla
-                </p>
-              </div>
-              <div className="p-3 bg-gray-900/50 rounded-lg">
-                <p className="text-gray-400 text-sm">
-                  <strong>2. Düzenle:</strong> Detay ekranından Düzenle butonuna tıkla
-                </p>
-              </div>
-              <div className="p-3 bg-gray-900/50 rounded-lg">
-                <p className="text-gray-400 text-sm">
-                  <strong>3. Kaydet:</strong> Değişiklikleri yapıp Kaydet butonuna tıkla
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </main>
 
-      {/* Footer */}
       <footer className="py-8 border-t border-gray-800 mt-12">
         <div className="container mx-auto px-4 text-center">
           <p className="text-gray-400">
             © 2026 Ay Günlüğü - Günlük Yönetimi
-          </p>
-          <p className="text-gray-500 text-sm mt-2">
-            Tüm günlükler tarayıcı belleğinizde saklanır. Düzenlemeler otomatik kaydedilir.
           </p>
         </div>
       </footer>
