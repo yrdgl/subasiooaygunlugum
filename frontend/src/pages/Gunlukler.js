@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   FaMoon, FaSearch, FaFilter, FaCalendarAlt, 
   FaArrowLeft, FaEdit, FaTrash, FaEye, FaStar,
-  FaSave, FaTimes
+  FaSave, FaTimes, FaCheck
 } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 
@@ -67,9 +67,14 @@ function Gunlukler() {
     siralama: 'yeniden-eskive'
   });
 
-  const [seciliGunluk, setSeciliGunluk] = useState(null);
-  const [duzenlenenGunluk, setDuzenlenenGunluk] = useState(null);
-  const [duzenlemeModu, setDuzenlemeModu] = useState(false);
+  // DÜZELTME: Tek state'te tutuyoruz
+  const [modalDurumu, setModalDurumu] = useState({
+    goster: false,
+    mod: 'detay', // 'detay' veya 'duzenle'
+    seciliGunluk: null
+  });
+
+  const [duzenlemeVerisi, setDuzenlemeVerisi] = useState(null);
 
   // İstatistikleri dinamik hesapla
   const istatistikler = {
@@ -118,53 +123,70 @@ function Gunlukler() {
     if (window.confirm('Bu günlüğü silmek istediğinize emin misiniz? Bu işlem geri alınamaz!')) {
       const yeniGunlukler = gunlukler.filter(gunluk => gunluk.id !== id);
       setGunlukler(yeniGunlukler);
-      setSeciliGunluk(null);
-      setDuzenlenenGunluk(null);
+      setModalDurumu({ goster: false, mod: 'detay', seciliGunluk: null });
       alert('✅ Günlük başarıyla silindi!');
     }
   };
 
-  const handleGunlukDetay = (gunluk) => {
+  // DETAY GÖSTER
+  const handleDetayGoster = (gunluk) => {
     // Görüntülenme sayısını artır
     const guncellenmisGunlukler = gunlukler.map(g => 
       g.id === gunluk.id ? { ...g, goruntulenme: g.goruntulenme + 1 } : g
     );
     setGunlukler(guncellenmisGunlukler);
     
-    setSeciliGunluk({ ...gunluk, goruntulenme: gunluk.goruntulenme + 1 });
+    setModalDurumu({
+      goster: true,
+      mod: 'detay',
+      seciliGunluk: { ...gunluk, goruntulenme: gunluk.goruntulenme + 1 }
+    });
   };
 
+  // DÜZENLEMEYE BAŞLA
   const handleDuzenlemeyeBasla = (gunluk) => {
-    setDuzenlenenGunluk({ ...gunluk });
-    setDuzenlemeModu(true);
-    setSeciliGunluk(null);
+    setDuzenlemeVerisi({ ...gunluk });
+    setModalDurumu({
+      goster: true,
+      mod: 'duzenle',
+      seciliGunluk: gunluk
+    });
   };
 
+  // DÜZENLEMEYİ KAYDET
   const handleDuzenlemeKaydet = () => {
-    if (!duzenlenenGunluk.baslik.trim() || !duzenlenenGunluk.tamIcerik.trim()) {
+    if (!duzenlemeVerisi.baslik.trim() || !duzenlemeVerisi.tamIcerik.trim()) {
       alert('Başlık ve içerik boş olamaz!');
       return;
     }
 
     const guncellenmisGunlukler = gunlukler.map(gunluk =>
-      gunluk.id === duzenlenenGunluk.id 
+      gunluk.id === duzenlemeVerisi.id 
         ? { 
-            ...duzenlenenGunluk, 
+            ...duzenlemeVerisi, 
             duzenlemeTarihi: new Date().toLocaleString('tr-TR'),
-            icerik: duzenlenenGunluk.tamIcerik.substring(0, 100) + '...'
+            icerik: duzenlemeVerisi.tamIcerik.substring(0, 100) + '...'
           } 
         : gunluk
     );
 
     setGunlukler(guncellenmisGunlukler);
-    setDuzenlemeModu(false);
-    setDuzenlenenGunluk(null);
+    setModalDurumu({
+      goster: false,
+      mod: 'detay',
+      seciliGunluk: null
+    });
+    setDuzenlemeVerisi(null);
     alert('✅ Günlük başarıyla güncellendi!');
   };
 
-  const handleDuzenlemeIptal = () => {
-    setDuzenlemeModu(false);
-    setDuzenlenenGunluk(null);
+  const handleModalKapat = () => {
+    setModalDurumu({
+      goster: false,
+      mod: 'detay',
+      seciliGunluk: null
+    });
+    setDuzenlemeVerisi(null);
   };
 
   const handleFavoriDegistir = (id) => {
@@ -194,10 +216,230 @@ function Gunlukler() {
     };
 
     setGunlukler([yeniGunluk, ...gunlukler]);
-    setDuzenlenenGunluk(yeniGunluk);
-    setDuzenlemeModu(true);
+    setDuzenlemeVerisi(yeniGunluk);
+    setModalDurumu({
+      goster: true,
+      mod: 'duzenle',
+      seciliGunluk: yeniGunluk
+    });
     alert('🆕 Yeni günlük oluşturuldu! Şimdi düzenleyebilirsiniz.');
   };
+
+  // DÜZENLEME MODAL İÇERİĞİ
+  const renderDuzenlemeModal = () => (
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+      <div className="bg-gradient-to-b from-gray-800 to-gray-900 rounded-2xl p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto border border-gray-700">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-2xl font-bold">
+            ✏️ Günlük Düzenle
+          </h3>
+          <button
+            onClick={handleModalKapat}
+            className="text-gray-400 hover:text-white text-2xl"
+          >
+            <FaTimes />
+          </button>
+        </div>
+        
+        <div className="space-y-6">
+          {/* Başlık */}
+          <div>
+            <label className="block text-gray-300 mb-2 font-semibold">Başlık</label>
+            <input
+              type="text"
+              value={duzenlemeVerisi?.baslik || ''}
+              onChange={(e) => setDuzenlemeVerisi({
+                ...duzenlemeVerisi,
+                baslik: e.target.value
+              })}
+              className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-yellow-500"
+            />
+          </div>
+          
+          {/* Ay Evresi */}
+          <div>
+            <label className="block text-gray-300 mb-2 font-semibold">Ay Evresi</label>
+            <div className="grid grid-cols-4 gap-2">
+              {['🌙', '🌓', '🌕', '🌗'].map((evre) => (
+                <button
+                  key={evre}
+                  type="button"
+                  onClick={() => {
+                    let evreAdi = "Hilal";
+                    if (evre === '🌓') evreAdi = "İlk Dördün";
+                    if (evre === '🌕') evreAdi = "Dolunay";
+                    if (evre === '🌗') evreAdi = "Son Dördün";
+                    
+                    setDuzenlemeVerisi({
+                      ...duzenlemeVerisi,
+                      ayEvresi: evre,
+                      evreAdi: evreAdi,
+                      baslik: `${evre} ${duzenlemeVerisi.baslik.replace(/^[🌙🌓🌕🌗]\s*/, '')}`
+                    });
+                  }}
+                  className={`p-4 text-2xl rounded-lg ${duzenlemeVerisi?.ayEvresi === evre ? 'bg-yellow-500/20 border-2 border-yellow-500' : 'bg-gray-900 hover:bg-gray-800'}`}
+                >
+                  {evre}
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Tarih */}
+          <div>
+            <label className="block text-gray-300 mb-2 font-semibold">Tarih</label>
+            <input
+              type="text"
+              value={duzenlemeVerisi?.tarih || ''}
+              onChange={(e) => setDuzenlemeVerisi({
+                ...duzenlemeVerisi,
+                tarih: e.target.value
+              })}
+              className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-yellow-500"
+              placeholder="Örnek: 15 Ocak 2026"
+            />
+          </div>
+          
+          {/* Tam İçerik */}
+          <div>
+            <label className="block text-gray-300 mb-2 font-semibold">Gözlem İçeriği</label>
+            <textarea
+              value={duzenlemeVerisi?.tamIcerik || ''}
+              onChange={(e) => setDuzenlemeVerisi({
+                ...duzenlemeVerisi,
+                tamIcerik: e.target.value
+              })}
+              className="w-full h-48 bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-yellow-500 resize-none"
+            />
+            <p className="text-gray-400 text-sm mt-1">
+              Karakter sayısı: {(duzenlemeVerisi?.tamIcerik || '').length}
+            </p>
+          </div>
+          
+          {/* Not */}
+          <div>
+            <label className="block text-gray-300 mb-2 font-semibold">Ek Notlar</label>
+            <textarea
+              value={duzenlemeVerisi?.not || ''}
+              onChange={(e) => setDuzenlemeVerisi({
+                ...duzenlemeVerisi,
+                not: e.target.value
+              })}
+              className="w-full h-32 bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-yellow-500 resize-none"
+            />
+          </div>
+          
+          {/* Favori */}
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="favori"
+              checked={duzenlemeVerisi?.favori || false}
+              onChange={(e) => setDuzenlemeVerisi({
+                ...duzenlemeVerisi,
+                favori: e.target.checked
+              })}
+              className="w-5 h-5 mr-2"
+            />
+            <label htmlFor="favori" className="text-gray-300">
+              Favorilere Ekle
+            </label>
+          </div>
+          
+          {/* Butonlar */}
+          <div className="flex justify-end space-x-3 pt-4 border-t border-gray-700">
+            <button
+              onClick={handleModalKapat}
+              className="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors flex items-center"
+            >
+              <FaTimes className="mr-2" />
+              İptal
+            </button>
+            <button
+              onClick={handleDuzenlemeKaydet}
+              className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-lg transition-all flex items-center"
+            >
+              <FaCheck className="mr-2" />
+              Kaydet
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // DETAY MODAL İÇERİĞİ
+  const renderDetayModal = () => (
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+      <div className="bg-gradient-to-b from-gray-800 to-gray-900 rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-700">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-2xl font-bold">
+            {modalDurumu.seciliGunluk.ayEvresi} {modalDurumu.seciliGunluk.baslik}
+          </h3>
+          <button
+            onClick={handleModalKapat}
+            className="text-gray-400 hover:text-white text-2xl"
+          >
+            ✕
+          </button>
+        </div>
+        
+        <div className="space-y-4">
+          <div className="flex items-center space-x-4 text-sm text-gray-400">
+            <span>{modalDurumu.seciliGunluk.tarih}</span>
+            <span>ID: {modalDurumu.seciliGunluk.id}</span>
+            <span className="text-green-400">✅ Kayıtlı</span>
+            <span>👁️ {modalDurumu.seciliGunluk.goruntulenme} görüntülenme</span>
+            {modalDurumu.seciliGunluk.favori && (
+              <span className="text-yellow-400">⭐ Favori</span>
+            )}
+          </div>
+          
+          <div className="bg-gray-900/50 rounded-xl p-4">
+            <h4 className="font-bold mb-2">Günlük İçeriği</h4>
+            <p className="text-gray-300 whitespace-pre-line">
+              {modalDurumu.seciliGunluk.tamIcerik}
+            </p>
+          </div>
+          
+          <div className="bg-gray-900/50 rounded-xl p-4">
+            <h4 className="font-bold mb-2">Not</h4>
+            <p className="text-gray-300">{modalDurumu.seciliGunluk.not}</p>
+          </div>
+          
+          {modalDurumu.seciliGunluk.duzenlemeTarihi && (
+            <div className="bg-yellow-900/30 rounded-xl p-4">
+              <h4 className="font-bold mb-2 text-yellow-300">✏️ Son Düzenleme</h4>
+              <p className="text-gray-300">{modalDurumu.seciliGunluk.duzenlemeTarihi}</p>
+            </div>
+          )}
+          
+          <div className="flex justify-end space-x-3 pt-4">
+            <button
+              onClick={() => handleGunlukSil(modalDurumu.seciliGunluk.id)}
+              className="px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 rounded-lg hover:from-red-700 hover:to-red-800 transition-all flex items-center"
+            >
+              <FaTrash className="mr-2" />
+              Sil
+            </button>
+            <button
+              onClick={() => handleDuzenlemeyeBasla(modalDurumu.seciliGunluk)}
+              className="px-4 py-2 bg-gradient-to-r from-yellow-600 to-yellow-700 rounded-lg hover:from-yellow-700 hover:to-yellow-800 transition-all flex items-center"
+            >
+              <FaEdit className="mr-2" />
+              Düzenle
+            </button>
+            <button
+              onClick={handleModalKapat}
+              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+            >
+              Kapat
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white">
@@ -356,9 +598,6 @@ function Gunlukler() {
               </h3>
               <div className="text-sm text-gray-400">
                 <span className="text-green-400">Düzenlenebilir Mod</span>
-                <span className="ml-2 px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded">
-                  LocalStorage Kayıtlı
-                </span>
               </div>
             </div>
             
@@ -385,23 +624,22 @@ function Gunlukler() {
                     <div className="flex-1">
                       <div className="flex items-start justify-between mb-3">
                         <div>
-                          <h4 className="text-xl font-bold mb-1">
+                          <div className="flex items-center mb-1">
                             <button
                               onClick={() => handleFavoriDegistir(gunluk.id)}
-                              className={`mr-2 ${gunluk.favori ? 'text-yellow-400' : 'text-gray-500'}`}
+                              className={`mr-2 text-xl ${gunluk.favori ? 'text-yellow-400' : 'text-gray-500 hover:text-yellow-300'}`}
                             >
                               {gunluk.favori ? '★' : '☆'}
                             </button>
-                            {gunluk.ayEvresi} {gunluk.baslik}
-                          </h4>
+                            <h4 className="text-xl font-bold inline">
+                              {gunluk.ayEvresi} {gunluk.baslik}
+                            </h4>
+                          </div>
                           <div className="flex items-center space-x-4 text-sm text-gray-400">
                             <span>{gunluk.tarih}</span>
                             <span>ID: {gunluk.id}</span>
                             <span className="text-green-400">✅ Kayıtlı</span>
                             <span className="text-blue-400">👁️ {gunluk.goruntulenme} görüntülenme</span>
-                            {gunluk.duzenlemeTarihi && (
-                              <span className="text-yellow-400">✏️ {gunluk.duzenlemeTarihi}</span>
-                            )}
                           </div>
                         </div>
                         <span className="text-3xl">{gunluk.ayEvresi}</span>
@@ -420,7 +658,7 @@ function Gunlukler() {
                     {/* Sağ: Butonlar */}
                     <div className="flex flex-col space-y-2">
                       <button
-                        onClick={() => handleGunlukDetay(gunluk)}
+                        onClick={() => handleDetayGoster(gunluk)}
                         className="flex items-center justify-center px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all"
                       >
                         <FaEye className="mr-2" />
@@ -447,237 +685,33 @@ function Gunlukler() {
             )}
           </div>
 
-          {/* DÜZENLEME MODALI */}
-          {duzenlemeModu && duzenlenenGunluk && (
-            <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
-              <div className="bg-gradient-to-b from-gray-800 to-gray-900 rounded-2xl p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto border border-gray-700">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-2xl font-bold">
-                    ✏️ Günlük Düzenle: {duzenlenenGunluk.ayEvresi} {duzenlenenGunluk.baslik}
-                  </h3>
-                  <button
-                    onClick={handleDuzenlemeIptal}
-                    className="text-gray-400 hover:text-white text-2xl"
-                  >
-                    <FaTimes />
-                  </button>
-                </div>
-                
-                <div className="space-y-6">
-                  {/* Başlık */}
-                  <div>
-                    <label className="block text-gray-300 mb-2 font-semibold">Başlık</label>
-                    <input
-                      type="text"
-                      value={duzenlenenGunluk.baslik}
-                      onChange={(e) => setDuzenlenenGunluk({
-                        ...duzenlenenGunluk,
-                        baslik: e.target.value
-                      })}
-                      className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-yellow-500"
-                    />
-                  </div>
-                  
-                  {/* Ay Evresi */}
-                  <div>
-                    <label className="block text-gray-300 mb-2 font-semibold">Ay Evresi</label>
-                    <div className="grid grid-cols-4 gap-2">
-                      {['🌙', '🌓', '🌕', '🌗'].map((evre) => (
-                        <button
-                          key={evre}
-                          type="button"
-                          onClick={() => {
-                            let evreAdi = "Hilal";
-                            if (evre === '🌓') evreAdi = "İlk Dördün";
-                            if (evre === '🌕') evreAdi = "Dolunay";
-                            if (evre === '🌗') evreAdi = "Son Dördün";
-                            
-                            setDuzenlenenGunluk({
-                              ...duzenlenenGunluk,
-                              ayEvresi: evre,
-                              evreAdi: evreAdi
-                            });
-                          }}
-                          className={`p-4 text-2xl rounded-lg ${duzenlenenGunluk.ayEvresi === evre ? 'bg-yellow-500/20 border-2 border-yellow-500' : 'bg-gray-900 hover:bg-gray-800'}`}
-                        >
-                          {evre}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  {/* Tarih */}
-                  <div>
-                    <label className="block text-gray-300 mb-2 font-semibold">Tarih</label>
-                    <input
-                      type="text"
-                      value={duzenlenenGunluk.tarih}
-                      onChange={(e) => setDuzenlenenGunluk({
-                        ...duzenlenenGunluk,
-                        tarih: e.target.value
-                      })}
-                      className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-yellow-500"
-                      placeholder="Örnek: 15 Ocak 2026"
-                    />
-                  </div>
-                  
-                  {/* Tam İçerik */}
-                  <div>
-                    <label className="block text-gray-300 mb-2 font-semibold">Gözlem İçeriği</label>
-                    <textarea
-                      value={duzenlenenGunluk.tamIcerik}
-                      onChange={(e) => setDuzenlenenGunluk({
-                        ...duzenlenenGunluk,
-                        tamIcerik: e.target.value
-                      })}
-                      className="w-full h-48 bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-yellow-500 resize-none"
-                    />
-                    <p className="text-gray-400 text-sm mt-1">
-                      Karakter sayısı: {duzenlenenGunluk.tamIcerik.length}
-                    </p>
-                  </div>
-                  
-                  {/* Not */}
-                  <div>
-                    <label className="block text-gray-300 mb-2 font-semibold">Ek Notlar</label>
-                    <textarea
-                      value={duzenlenenGunluk.not}
-                      onChange={(e) => setDuzenlenenGunluk({
-                        ...duzenlenenGunluk,
-                        not: e.target.value
-                      })}
-                      className="w-full h-32 bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-yellow-500 resize-none"
-                    />
-                  </div>
-                  
-                  {/* Favori */}
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="favori"
-                      checked={duzenlenenGunluk.favori}
-                      onChange={(e) => setDuzenlenenGunluk({
-                        ...duzenlenenGunluk,
-                        favori: e.target.checked
-                      })}
-                      className="w-5 h-5 mr-2"
-                    />
-                    <label htmlFor="favori" className="text-gray-300">
-                      Favorilere Ekle
-                    </label>
-                  </div>
-                  
-                  {/* Butonlar */}
-                  <div className="flex justify-end space-x-3 pt-4 border-t border-gray-700">
-                    <button
-                      onClick={handleDuzenlemeIptal}
-                      className="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors flex items-center"
-                    >
-                      <FaTimes className="mr-2" />
-                      İptal
-                    </button>
-                    <button
-                      onClick={handleDuzenlemeKaydet}
-                      className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-lg transition-all flex items-center"
-                    >
-                      <FaSave className="mr-2" />
-                      Kaydet
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Detay Modalı */}
-          {seciliGunluk && !duzenlemeModu && (
-            <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
-              <div className="bg-gradient-to-b from-gray-800 to-gray-900 rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-700">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-2xl font-bold">
-                    {seciliGunluk.ayEvresi} {seciliGunluk.baslik}
-                  </h3>
-                  <button
-                    onClick={() => setSeciliGunluk(null)}
-                    className="text-gray-400 hover:text-white text-2xl"
-                  >
-                    ✕
-                  </button>
-                </div>
-                
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-4 text-sm text-gray-400">
-                    <span>{seciliGunluk.tarih}</span>
-                    <span>ID: {seciliGunluk.id}</span>
-                    <span className="text-green-400">✅ Kayıtlı</span>
-                    <span>👁️ {seciliGunluk.goruntulenme} görüntülenme</span>
-                    {seciliGunluk.favori && (
-                      <span className="text-yellow-400">⭐ Favori</span>
-                    )}
-                  </div>
-                  
-                  <div className="bg-gray-900/50 rounded-xl p-4">
-                    <h4 className="font-bold mb-2">Günlük İçeriği</h4>
-                    <p className="text-gray-300 whitespace-pre-line">
-                      {seciliGunluk.tamIcerik}
-                    </p>
-                  </div>
-                  
-                  <div className="bg-gray-900/50 rounded-xl p-4">
-                    <h4 className="font-bold mb-2">Not</h4>
-                    <p className="text-gray-300">{seciliGunluk.not}</p>
-                  </div>
-                  
-                  {seciliGunluk.duzenlemeTarihi && (
-                    <div className="bg-yellow-900/30 rounded-xl p-4">
-                      <h4 className="font-bold mb-2 text-yellow-300">✏️ Son Düzenleme</h4>
-                      <p className="text-gray-300">{seciliGunluk.duzenlemeTarihi}</p>
-                    </div>
-                  )}
-                  
-                  <div className="flex justify-end space-x-3 pt-4">
-                    <button
-                      onClick={() => setSeciliGunluk(null)}
-                      className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
-                    >
-                      Kapat
-                    </button>
-                    <button
-                      onClick={() => handleDuzenlemeyeBasla(seciliGunluk)}
-                      className="px-4 py-2 bg-gradient-to-r from-yellow-600 to-yellow-700 rounded-lg hover:from-yellow-700 hover:to-yellow-800 transition-all flex items-center"
-                    >
-                      <FaEdit className="mr-2" />
-                      Düzenle
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+          {/* MODALLAR */}
+          {modalDurumu.goster && (
+            modalDurumu.mod === 'duzenle' 
+              ? renderDuzenlemeModal()
+              : renderDetayModal()
           )}
 
           {/* Bilgilendirme */}
           <div className="mt-8 bg-blue-900/30 rounded-xl p-6 border border-blue-700/50">
             <h3 className="text-xl font-bold text-white mb-3">
-              💾 Kayıt Sistemi - ÖNEMLİ
+              💡 Kullanım Kılavuzu
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="p-3 bg-gray-900/50 rounded-lg">
                 <p className="text-gray-400 text-sm">
-                  <strong>📍 Kayıt Tipi:</strong> LocalStorage
+                  <strong>1. Detay Görüntüle:</strong> Detay butonuna tıkla
                 </p>
-                <p className="text-gray-500 text-xs mt-1">Tarayıcı hafızasında saklanır</p>
               </div>
               <div className="p-3 bg-gray-900/50 rounded-lg">
                 <p className="text-gray-400 text-sm">
-                  <strong>⚠️ Uyarı:</strong> Geçici Depolama
+                  <strong>2. Düzenle:</strong> Detay ekranından Düzenle butonuna tıkla
                 </p>
-                <p className="text-gray-500 text-xs mt-1">Tarayıcı temizlenirse kayıtlar silinir</p>
               </div>
               <div className="p-3 bg-gray-900/50 rounded-lg">
                 <p className="text-gray-400 text-sm">
-                  <strong>🎯 Hedef:</strong> Firebase'e Geçiş
+                  <strong>3. Kaydet:</strong> Değişiklikleri yapıp Kaydet butonuna tıkla
                 </p>
-                <p className="text-gray-500 text-xs mt-1">Kalıcı veritabanı sonra eklenecek</p>
               </div>
             </div>
           </div>
@@ -691,7 +725,7 @@ function Gunlukler() {
             © 2026 Ay Günlüğü - Günlük Yönetimi
           </p>
           <p className="text-gray-500 text-sm mt-2">
-            Günlükleriniz tarayıcınızda LocalStorage ile saklanmaktadır.
+            Tüm günlükler tarayıcı belleğinizde saklanır. Düzenlemeler otomatik kaydedilir.
           </p>
         </div>
       </footer>
