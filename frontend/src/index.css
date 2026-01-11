@@ -132,3 +132,41 @@ html {
 ::-webkit-scrollbar-thumb:hover {
   background: #2563eb;
 }
+/* Custom Toast Styles for Ay Günlüğü Theme */
+[data-radix-toast] {
+  background: linear-gradient(135deg, #1e40af, #3b82f6) !important;
+  color: white !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-left: 4px solid #10b981 !important;
+  backdrop-filter: blur(10px) !important;
+  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3) !important;
+  border-radius: 12px !important;
+  padding: 16px 20px !important;
+}
+
+[data-radix-toast].destructive {
+  background: linear-gradient(135deg, #dc2626, #ef4444) !important;
+  border-left-color: #f87171 !important;
+  box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3) !important;
+}
+
+[data-radix-toast] [data-title] {
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  color: white !important;
+  margin-bottom: 4px !important;
+}
+
+[data-radix-toast] [data-description] {
+  font-size: 13px !important;
+  opacity: 0.9 !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+[data-radix-toast] button[data-close] {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+[data-radix-toast] button[data-close]:hover {
+  color: white !important;
+}
