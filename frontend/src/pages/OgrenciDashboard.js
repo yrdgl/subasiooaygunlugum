@@ -9,6 +9,13 @@ import { Link, useNavigate } from 'react-router-dom';
 function OgrenciDashboard() {
   const navigate = useNavigate();
   
+  // Bugünün tarihini al
+  const getTodayDate = () => {
+    const today = new Date();
+    const options = { day: 'numeric', month: 'long', year: 'numeric' };
+    return new Intl.DateTimeFormat('tr-TR', options).format(today);
+  };
+  
   // Demo verileri
   const [ogrenci] = useState({
     ad: "Ali",
@@ -16,12 +23,6 @@ function OgrenciDashboard() {
     sinif: "5",
     sube: "A",
     ogrenciNo: "12345"
-  });
-
-  const [bugununBilgisi] = useState({
-    tarih: "10 Ocak 2026",
-    ayEvresi: "🌖 Son Dördün",
-    ayDurumu: "Ayın yarısı görünüyor, hafif bulutlu"
   });
 
   const handleCikis = () => {
@@ -91,26 +92,20 @@ function OgrenciDashboard() {
             </p>
           </div>
 
-          {/* Bugünün Bilgisi */}
+          {/* Bugünün Bilgisi - SARI BUTON VE HAVA DURUMU KALDIRILDI */}
           <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-2xl p-6 mb-8 border border-blue-700/50">
-            <div className="flex flex-col md:flex-row items-center justify-between">
-              <div className="mb-4 md:mb-0">
-                <div className="flex items-center space-x-3">
-                  <div className="text-6xl">{bugununBilgisi.ayEvresi}</div>
-                  <div>
-                    <h3 className="text-2xl font-bold">Bugün: {bugununBilgisi.tarih}</h3>
-                    <p className="text-gray-300">{bugununBilgisi.ayDurumu}</p>
-                  </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="text-6xl">🌙</div>
+                <div>
+                  <h3 className="text-2xl font-bold">Bugün: {getTodayDate()}</h3>
+                  <p className="text-gray-300">
+                    Ay gözlemine başlamak için aşağıdaki "Yeni Günlük Yaz" butonuna tıklayın.
+                  </p>
                 </div>
               </div>
               
-              <Link 
-                to="/YeniGunluk"
-                className="flex items-center justify-center px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold rounded-xl hover:from-yellow-600 hover:to-orange-600 transition-all transform hover:scale-105"
-              >
-                <FaPlus className="mr-2" />
-                Yeni Günlük Yaz
-              </Link>
+              {/* SARI BUTON KALDIRILDI - SADECE TARİH VE AÇIKLAMA KALDI */}
             </div>
           </div>
 
@@ -177,7 +172,7 @@ function OgrenciDashboard() {
             </button>
           </div>
 
-          {/* AY TAKVİMİ BÖLÜMÜ - SON GÜNLÜKLER YERİNE */}
+          {/* AY TAKVİMİ BÖLÜMÜ */}
           <div className="max-w-6xl mx-auto">
             <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700">
               <div className="flex items-center justify-between mb-6">
