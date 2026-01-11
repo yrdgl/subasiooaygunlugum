@@ -4,10 +4,12 @@ import {
   FaArrowLeft, FaSave 
 } from 'react-icons/fa';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast'; // Bu import'u ekleyin
 
 function YeniGunluk() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { toast } = useToast(); // Toast hook'unu ekleyin
   
   const getUrlDate = () => {
     const searchParams = new URLSearchParams(location.search);
@@ -77,7 +79,11 @@ function YeniGunluk() {
     e.preventDefault();
     
     if (!formData.ayEvresi) {
-      alert('Lütfen ayın evresini seçin!');
+      toast({
+        title: "Hata",
+        description: "Lütfen ayın evresini seçin!",
+        variant: "destructive"
+      });
       return;
     }
     
@@ -95,14 +101,16 @@ function YeniGunluk() {
       goruntulenme: 0,
       duzenlemeTarihi: null,
       olusturmaTarihi: new Date().toLocaleString('tr-TR')
-      // FOTO ALANI KALDIRILDI
     };
     
     const mevcutGunlukler = JSON.parse(localStorage.getItem('gunlukVerileri') || '[]');
     mevcutGunlukler.unshift(gunlukVerisi);
     localStorage.setItem('gunlukVerileri', JSON.stringify(mevcutGunlukler));
     
-    alert(`✅ Günlük başarıyla kaydedildi!\nTarih: ${formatDisplayDate(formData.tarih)}\nAy Evresi: ${secilenAyEvresi?.ad}`);
+    toast({
+      title: "✅ Günlük Kaydedildi",
+      description: `Tarih: ${formatDisplayDate(formData.tarih)}\nAy Evresi: ${secilenAyEvresi?.ad}`,
+    });
     
     setTimeout(() => {
       navigate('/Gunlukler');
@@ -123,6 +131,11 @@ function YeniGunluk() {
     });
     
     setKarakterSayisi(120);
+    
+    toast({
+      title: "Demo Bilgileri Yüklendi",
+      description: "Kaydetmek için 'GÜNLÜĞÜ KAYDET' butonuna tıklayın.",
+    });
   };
 
   return (
@@ -253,15 +266,20 @@ function YeniGunluk() {
                       </p>
                       <button
                         type="button"
-                        onClick={() => setFormData(prev => ({ ...prev, gozlem: '' }))}
+                        onClick={() => {
+                          setFormData(prev => ({ ...prev, gozlem: '' }));
+                          setKarakterSayisi(0);
+                          toast({
+                            title: "Temizlendi",
+                            description: "Gözlem notları temizlendi.",
+                          });
+                        }}
                         className="text-gray-400 hover:text-white text-sm"
                       >
                         Temizle
                       </button>
                     </div>
                   </div>
-
-                  {/* FOTOĞRAF BÖLÜMÜ TAMAMEN KALDIRILDI */}
 
                   {/* Demo ve Kaydet Butonları */}
                   <div className="space-y-4">
