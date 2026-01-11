@@ -293,4 +293,4 @@ const HomePage = () => {
   );
 };
 
-export default HomePage;DENE
+export default HomePage;
