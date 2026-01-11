@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { 
   FaMoon, FaSearch, FaFilter, FaCalendarAlt, 
   FaArrowLeft, FaEdit, FaTrash, FaEye,
-  FaSave, FaTimes, FaCheck, FaPlus
-} from 'react-icons/fa';
+  FaSave, FaTimes, FaCheck
+} from 'react-icons/fa'; // FaPlus KALDIRILDI
 import { Link } from 'react-router-dom';
 
 function Gunlukler() {
@@ -157,32 +157,9 @@ function Gunlukler() {
     setDuzenlemeVerisi(null);
   };
 
-  const handleYeniGunlukEkle = () => {
-    const yeniGunluk = {
-      id: Date.now(),
-      tarih: new Date().toLocaleDateString('tr-TR', { 
-        day: 'numeric', 
-        month: 'long', 
-        year: 'numeric' 
-      }),
-      ayEvresi: "🌒", // Varsayılan Hilal
-      icerik: "Bugünkü gözlem notlarınızı buraya yazın...",
-      tamIcerik: "Bugünkü gözlem notlarınızı buraya detaylı şekilde yazın. Ayın görünümü nasıldı? Hava koşulları ne durumdaydı? Özel gözlemleriniz nelerdi?",
-      goruntulenme: 0,
-      duzenlemeTarihi: null
-    };
+  // YENİ GÜNLÜK EKLE FONKSİYONU KALDIRILDI
 
-    setGunlukler([yeniGunluk, ...gunlukler]);
-    setDuzenlemeVerisi(yeniGunluk);
-    setModalDurumu({
-      goster: true,
-      mod: 'duzenle',
-      seciliGunluk: yeniGunluk
-    });
-    alert('🆕 Yeni günlük oluşturuldu! Şimdi düzenleyebilirsiniz.');
-  };
-
-  // DÜZENLEME MODAL İÇERİĞİ - DOĞRU AY EVRELERİ
+  // DÜZENLEME MODAL İÇERİĞİ
   const renderDuzenlemeModal = () => (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
       <div className="bg-gradient-to-b from-gray-800 to-gray-900 rounded-2xl p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto border border-gray-700">
@@ -380,7 +357,7 @@ function Gunlukler() {
 
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
-          {/* Filtreler */}
+          {/* Filtreler - + YENİ GÜNLÜK BUTONU KALDIRILDI */}
           <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 mb-8">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold">Filtreler</h2>
@@ -391,12 +368,7 @@ function Gunlukler() {
                 >
                   Filtreleri Temizle
                 </button>
-                <button
-                  onClick={handleYeniGunlukEkle}
-                  className="text-sm bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-3 py-1 rounded"
-                >
-                  + Yeni Günlük
-                </button>
+                {/* + YENİ GÜNLÜK BUTONU BURADA YOK */}
               </div>
             </div>
             
@@ -454,7 +426,7 @@ function Gunlukler() {
             </div>
           </div>
 
-          {/* Günlük Listesi */}
+          {/* Günlük Listesi - YENİ GÜNLÜK BUTONU KALDIRILDI */}
           <div className="space-y-4">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-bold">
@@ -469,13 +441,8 @@ function Gunlukler() {
               <div className="text-center py-12 bg-gray-800/30 rounded-2xl border border-gray-700">
                 <div className="text-5xl mb-4">📝</div>
                 <h3 className="text-xl font-bold mb-2">Günlük Bulunamadı</h3>
-                <p className="text-gray-400">Filtrelerinizi değiştirmeyi deneyin veya yeni günlük oluşturun.</p>
-                <button
-                  onClick={handleYeniGunlukEkle}
-                  className="mt-4 px-6 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg hover:from-yellow-600 hover:to-orange-600"
-                >
-                  + Yeni Günlük Oluştur
-                </button>
+                <p className="text-gray-400">Filtrelerinizi değiştirmeyi deneyin.</p>
+                {/* + YENİ GÜNLÜK BUTONU BURADA YOK */}
               </div>
             ) : (
               filtrelenmisGunlukler.map((gunluk) => (
