@@ -9,28 +9,23 @@ function YeniGunluk() {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // URL'den tarih parametresini almak için
   const getUrlDate = () => {
     const searchParams = new URLSearchParams(location.search);
     return searchParams.get('date');
   };
   
-  // Bugünün tarihini 2026 yılına göre ayarlayalım
   const getTodayDate = () => {
     const urlDate = getUrlDate();
     
-    // Eğer URL'de tarih varsa onu kullan
     if (urlDate) {
       return urlDate;
     }
     
-    // Yoksa bugünün tarihini 2026 yılına ayarla
     const today = new Date();
     today.setFullYear(2026);
     return today.toISOString().split('T')[0];
   };
   
-  // Tarihi "15 Ocak 2026" formatında göstermek için
   const formatDisplayDate = (dateString) => {
     const date = new Date(dateString);
     const options = { day: 'numeric', month: 'long', year: 'numeric' };
@@ -41,15 +36,14 @@ function YeniGunluk() {
     tarih: getTodayDate(),
     ayEvresi: '',
     gozlem: '',
-    havaDurumu: 'gunesli',
-    notlar: ''
+    havaDurumu: 'gunesli'
+    // NOTLAR KALDIRILDI
   });
 
   const [foto, setFoto] = useState(null);
   const [fotoPreview, setFotoPreview] = useState(null);
   const [karakterSayisi, setKarakterSayisi] = useState(0);
 
-  // URL'de tarih değiştiğinde formu güncelle
   useEffect(() => {
     const urlDate = getUrlDate();
     if (urlDate) {
@@ -88,7 +82,6 @@ function YeniGunluk() {
       [name]: value
     }));
 
-    // Karakter sayısını güncelle
     if (name === 'gozlem') {
       setKarakterSayisi(value.length);
     }
@@ -97,7 +90,6 @@ function YeniGunluk() {
   const handleFotoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Dosya boyutu kontrolü (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         alert('Dosya boyutu 5MB\'dan küçük olmalıdır!');
         return;
@@ -120,7 +112,6 @@ function YeniGunluk() {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Validasyonlar
     if (!formData.ayEvresi) {
       alert('Lütfen ayın evresini seçin!');
       return;
@@ -136,26 +127,21 @@ function YeniGunluk() {
       return;
     }
     
-    // Günlük verisini hazırla
     const gunlukVerisi = {
       ...formData,
-      tarih: formatDisplayDate(formData.tarih), // Tarihi formatla
-      id: Date.now(), // Geçici ID
+      tarih: formatDisplayDate(formData.tarih),
+      id: Date.now(),
       olusturmaTarihi: new Date().toISOString(),
       foto: foto ? foto.name : null
     };
     
-    console.log('Günlük verisi:', gunlukVerisi);
-    console.log('Fotoğraf:', foto ? foto.name : 'Yok');
-    
-    // LocalStorage'a kaydet (demo için)
+    // LocalStorage'a kaydet
     const mevcutGunlukler = JSON.parse(localStorage.getItem('ayGunlukleri') || '[]');
     mevcutGunlukler.unshift(gunlukVerisi);
     localStorage.setItem('ayGunlukleri', JSON.stringify(mevcutGunlukler));
     
     alert(`✅ Günlük başarıyla kaydedildi!\nTarih: ${formatDisplayDate(formData.tarih)}\nAy Evresi: ${ayEvreleri.find(e => e.deger === formData.ayEvresi)?.ad}`);
     
-    // Dashboard'a yönlendir
     setTimeout(() => {
       navigate('/OgrenciDashboard');
     }, 1500);
@@ -163,7 +149,7 @@ function YeniGunluk() {
 
   const handleDemoDoldur = () => {
     const bugun = new Date();
-    bugun.setFullYear(2026); // 2026 yılına ayarla
+    bugun.setFullYear(2026);
     
     const secilenAyEvresi = 'dolunay';
     const secilenAyEvresiAd = ayEvreleri.find(e => e.deger === secilenAyEvresi)?.ad || 'Dolunay';
@@ -172,11 +158,10 @@ function YeniGunluk() {
       tarih: bugun.toISOString().split('T')[0],
       ayEvresi: secilenAyEvresi,
       gozlem: `${formatDisplayDate(bugun.toISOString().split('T')[0])} tarihinde ayı gözlemledim. Ay ${secilenAyEvresiAd} evresindeydi ve inanılmaz parlaktı. Gökyüzü tamamen açıktı, yıldızlar da net görünüyordu. Ayın yüzeyindeki kraterleri bile ayırt edebiliyordum. Etrafında hafif bir hale oluşmuştu ve bu görüntü gerçekten büyüleyiciydi.`,
-      havaDurumu: 'gunesli',
-      notlar: 'Gözlemimi 20:00-21:00 saatleri arasında yaptım. Yanımda küçük bir teleskop vardı ve bu sayede ay yüzeyini detaylı inceleme fırsatım oldu. Deniz kenarında olduğum için ayın su üzerindeki yansıması da harikaydı.'
+      havaDurumu: 'gunesli'
     });
     
-    setKarakterSayisi(450); // Demo metin karakter sayısı
+    setKarakterSayisi(450);
   };
 
   return (
@@ -336,19 +321,7 @@ function YeniGunluk() {
                     </div>
                   </div>
 
-                  {/* Ek Notlar */}
-                  <div>
-                    <label className="block text-gray-300 mb-3 text-lg font-semibold">
-                      💭 Ek Notlar (Opsiyonel)
-                    </label>
-                    <textarea
-                      name="notlar"
-                      value={formData.notlar}
-                      onChange={handleChange}
-                      className="w-full h-32 px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-yellow-500 transition-colors resize-none"
-                      placeholder="Eklemek istediğin başka şeyler var mı? Teleskop kullandın mı? Hangi saatte gözlem yaptın? vs..."
-                    />
-                  </div>
+                  {/* EK NOTLAR KALDIRILDI - BU KISIM YOK */}
 
                   {/* Fotoğraf */}
                   <div>
@@ -503,20 +476,6 @@ function YeniGunluk() {
                   </div>
                 </div>
               </div>
-
-              {/* Kaydetme İşlemi */}
-              <div className="bg-red-900/30 rounded-xl p-6 border border-red-700/50">
-                <h3 className="text-xl font-bold text-white mb-3">
-                  💾 Kaydetme İşlemi
-                </h3>
-                <div className="space-y-3 text-sm text-gray-300">
-                  <p>1️⃣ Tarih seç (2026)</p>
-                  <p>2️⃣ Ay evresi seç</p>
-                  <p>3️⃣ Gözlem yaz (min. 50 karakter)</p>
-                  <p>4️⃣ Foto ekle (isteğe bağlı)</p>
-                  <p>5️⃣ Kaydet butonuna tıkla</p>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -531,11 +490,6 @@ function YeniGunluk() {
           <p className="text-gray-500 text-sm mt-2">
             Her akşam gökyüzüne bak ve 2026 yılı ay gözlemlerini kaydet!
           </p>
-          <div className="mt-4 flex justify-center space-x-4 text-xs text-gray-600">
-            <span>📅 Tarih: {formatDisplayDate(formData.tarih)}</span>
-            <span>|</span>
-            <span>🌕 Ay Evresi: {formData.ayEvresi ? ayEvreleri.find(e => e.deger === formData.ayEvresi)?.ad : 'Seçilmedi'}</span>
-          </div>
         </div>
       </footer>
     </div>
