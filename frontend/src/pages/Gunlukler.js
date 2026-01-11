@@ -7,12 +7,13 @@ import {
 import { Link } from 'react-router-dom';
 
 function Gunlukler() {
-  // Doğru ay evreleri ile demo veriler
+  // Doğru ay evreleri ile demo veriler - AY EVRESİ ADI EKLENDİ
   const initialGunlukler = [
     {
       id: 1,
       tarih: "10 Ocak 2026",
       ayEvresi: "🌒", // Hilal
+      ayEvresiAd: "Hilal", // EKLENDİ
       icerik: "Hilal ayı bugün çok net göründü. İncecik bir hilal şeklindeydi...",
       tamIcerik: "Hilal ayı bugün çok net göründü. İncecik bir hilal şeklindeydi. Hava açıktı ve yıldızlar parlaktı. Gökyüzünde tek başına parlıyordu.",
       goruntulenme: 5,
@@ -22,6 +23,7 @@ function Gunlukler() {
       id: 2,
       tarih: "15 Ocak 2026",
       ayEvresi: "🌕", // Dolunay
+      ayEvresiAd: "Dolunay", // EKLENDİ
       icerik: "Ay bugün tam daire şeklindeydi. Çok parlak ve büyüktü...",
       tamIcerik: "Ay bugün tam daire şeklindeydi. Çok parlak ve büyüktü. Bulutlar arasında kaybolup tekrar görünüyordu. Deniz kenarından izlemek harikaydı.",
       goruntulenme: 3,
@@ -31,7 +33,16 @@ function Gunlukler() {
 
   const [gunlukler, setGunlukler] = useState(() => {
     const saved = localStorage.getItem('gunlukVerileri');
-    return saved ? JSON.parse(saved) : initialGunlukler;
+    // Eğer localStorage'da günlük varsa onları al, yoksa initialGunlukler'i kullan
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // Eğer localStorage'daki günlüklerde ayEvresiAd yoksa ekleyelim
+      return parsed.map(gunluk => ({
+        ...gunluk,
+        ayEvresiAd: gunluk.ayEvresiAd || getAyEvresiAdFromEmoji(gunluk.ayEvresi)
+      }));
+    }
+    return initialGunlukler;
   });
 
   useEffect(() => {
@@ -51,6 +62,23 @@ function Gunlukler() {
   });
 
   const [duzenlemeVerisi, setDuzenlemeVerisi] = useState(null);
+
+  // Emoji'den ay evresi adını bulma fonksiyonu
+  const getAyEvresiAdFromEmoji = (emoji) => {
+    const ayEvreleri = [
+      { emoji: '🌑', ad: 'Yeni Ay' },
+      { emoji: '🌒', ad: 'Hilal' },
+      { emoji: '🌓', ad: 'İlk Dördün' },
+      { emoji: '🌔', ad: 'Şişkin Ay' },
+      { emoji: '🌕', ad: 'Dolunay' },
+      { emoji: '🌖', ad: 'Şişkin Ay' },
+      { emoji: '🌗', ad: 'Son Dördün' },
+      { emoji: '🌘', ad: 'Hilal' }
+    ];
+    
+    const bulunan = ayEvreleri.find(evre => evre.emoji === emoji);
+    return bulunan ? bulunan.ad : 'Bilinmeyen Evre';
+  };
 
   // Doğru ay evreleri listesi
   const ayEvreleri = [
@@ -123,8 +151,8 @@ function Gunlukler() {
   };
 
   const handleDuzenlemeKaydet = () => {
-    if (!duzenlemeVerisi.tamIcerik.trim()) {
-      alert('Gözlem içeriği boş olamaz!');
+    if (!duzenlemeVerisi.tamIcerik) {
+      alert('Gözlem içeriği boş olamaz! Not yazmak istemiyorsanız boş bırakabilirsiniz.');
       return;
     }
 
@@ -133,7 +161,10 @@ function Gunlukler() {
         ? { 
             ...duzenlemeVerisi, 
             duzenlemeTarihi: new Date().toLocaleString('tr-TR'),
-            icerik: duzenlemeVerisi.tamIcerik.substring(0, 100) + '...'
+            icerik: duzenlemeVerisi.tamIcerik && duzenlemeVerisi.tamIcerik.length > 100 
+              ? duzenlemeVerisi.tamIcerik.substring(0, 100) + '...' 
+              : duzenlemeVerisi.tamIcerik || 'Gözlem notu eklenmedi',
+            ayEvresiAd: duzenlemeVerisi.ayEvresiAd || getAyEvresiAdFromEmoji(duzenlemeVerisi.ayEvresi)
           } 
         : gunluk
     );
@@ -156,8 +187,6 @@ function Gunlukler() {
     });
     setDuzenlemeVerisi(null);
   };
-
-  // YENİ GÜNLÜK EKLE FONKSİYONU KALDIRILDI
 
   // DÜZENLEME MODAL İÇERİĞİ
   const renderDuzenlemeModal = () => (
@@ -201,7 +230,8 @@ function Gunlukler() {
                   type="button"
                   onClick={() => setDuzenlemeVerisi({
                     ...duzenlemeVerisi,
-                    ayEvresi: evre.emoji
+                    ayEvresi: evre.emoji,
+                    ayEvresiAd: evre.ad
                   })}
                   className={`p-3 rounded-lg flex flex-col items-center justify-center transition-all ${
                     duzenlemeVerisi?.ayEvresi === evre.emoji 
@@ -219,7 +249,7 @@ function Gunlukler() {
               <div className="mt-3 p-3 bg-gray-900/50 rounded-lg">
                 <p className="text-gray-300 text-sm">
                   Seçilen: <span className="text-yellow-300 font-semibold">
-                    {duzenlemeVerisi.ayEvresi} {ayEvreleri.find(e => e.emoji === duzenlemeVerisi.ayEvresi)?.ad}
+                    {duzenlemeVerisi.ayEvresi} {duzenlemeVerisi.ayEvresiAd || getAyEvresiAdFromEmoji(duzenlemeVerisi.ayEvresi)}
                   </span>
                 </p>
               </div>
@@ -228,7 +258,7 @@ function Gunlukler() {
           
           {/* Gözlem İçeriği */}
           <div>
-            <label className="block text-gray-300 mb-2 font-semibold">Gözlem İçeriği</label>
+            <label className="block text-gray-300 mb-2 font-semibold">Gözlem İçeriği (Opsiyonel)</label>
             <textarea
               value={duzenlemeVerisi?.tamIcerik || ''}
               onChange={(e) => setDuzenlemeVerisi({
@@ -236,7 +266,7 @@ function Gunlukler() {
                 tamIcerik: e.target.value
               })}
               className="w-full h-64 bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-yellow-500 resize-none"
-              placeholder="Ay gözleminizi buraya yazın..."
+              placeholder="Ay gözleminizi buraya yazın (zorunlu değil)..."
             />
             <p className="text-gray-400 text-sm mt-1">
               Karakter sayısı: {(duzenlemeVerisi?.tamIcerik || '').length}
@@ -271,7 +301,7 @@ function Gunlukler() {
       <div className="bg-gradient-to-b from-gray-800 to-gray-900 rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-700">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-2xl font-bold">
-            {modalDurumu.seciliGunluk.ayEvresi} Gözlemi - {modalDurumu.seciliGunluk.tarih}
+            {modalDurumu.seciliGunluk.ayEvresi} {modalDurumu.seciliGunluk.ayEvresiAd || getAyEvresiAdFromEmoji(modalDurumu.seciliGunluk.ayEvresi)} Gözlemi - {modalDurumu.seciliGunluk.tarih}
           </h3>
           <button
             onClick={handleModalKapat}
@@ -292,7 +322,7 @@ function Gunlukler() {
           <div className="bg-gray-900/50 rounded-xl p-4">
             <h4 className="font-bold mb-2">Gözlem İçeriği</h4>
             <p className="text-gray-300 whitespace-pre-line">
-              {modalDurumu.seciliGunluk.tamIcerik}
+              {modalDurumu.seciliGunluk.tamIcerik || 'Gözlem notu eklenmemiş.'}
             </p>
           </div>
           
@@ -357,7 +387,7 @@ function Gunlukler() {
 
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
-          {/* Filtreler - + YENİ GÜNLÜK BUTONU KALDIRILDI */}
+          {/* Filtreler */}
           <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 mb-8">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold">Filtreler</h2>
@@ -368,7 +398,6 @@ function Gunlukler() {
                 >
                   Filtreleri Temizle
                 </button>
-                {/* + YENİ GÜNLÜK BUTONU BURADA YOK */}
               </div>
             </div>
             
@@ -426,7 +455,7 @@ function Gunlukler() {
             </div>
           </div>
 
-          {/* Günlük Listesi - YENİ GÜNLÜK BUTONU KALDIRILDI */}
+          {/* Günlük Listesi */}
           <div className="space-y-4">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-bold">
@@ -442,7 +471,6 @@ function Gunlukler() {
                 <div className="text-5xl mb-4">📝</div>
                 <h3 className="text-xl font-bold mb-2">Günlük Bulunamadı</h3>
                 <p className="text-gray-400">Filtrelerinizi değiştirmeyi deneyin.</p>
-                {/* + YENİ GÜNLÜK BUTONU BURADA YOK */}
               </div>
             ) : (
               filtrelenmisGunlukler.map((gunluk) => (
@@ -455,7 +483,7 @@ function Gunlukler() {
                       <div className="flex items-start justify-between mb-3">
                         <div>
                           <h4 className="text-xl font-bold mb-1">
-                            {gunluk.ayEvresi} {ayEvreleri.find(e => e.emoji === gunluk.ayEvresi)?.ad || 'Gözlem'} - {gunluk.tarih}
+                            {gunluk.ayEvresi} {gunluk.ayEvresiAd || getAyEvresiAdFromEmoji(gunluk.ayEvresi)} - {gunluk.tarih}
                           </h4>
                           <div className="flex items-center space-x-4 text-sm text-gray-400">
                             <span>{gunluk.tarih}</span>
