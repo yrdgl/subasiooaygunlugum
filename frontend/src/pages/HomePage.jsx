@@ -63,7 +63,7 @@ const HomePage = () => {
             </div>
           </div>
 
-          {/* 🎯 ÖĞRENCİ PLATFORMU BUTONLARI - BURAYA EKLENDİ */}
+          {/* 🎯 ÖĞRENCİ PLATFORMU BUTONLARI */}
           <div className="w-full max-w-2xl mx-auto mt-8 mb-16">
             <div className="bg-gradient-to-r from-[#1a1f3a]/80 to-[#0a0e27]/80 backdrop-blur-xl rounded-2xl border border-white/10 p-8">
               <h2 className="text-3xl font-bold text-center mb-6 text-white">
@@ -89,9 +89,19 @@ const HomePage = () => {
                 </a>
               </div>
               
-              <div className="mt-6 text-center">
-                <p className="text-gray-400 text-sm">
-                  Öğretmenler için giriş sayfası yakında eklenecek
+              {/* ÖĞRETMEN GİRİŞİ BUTONU - YENİ EKLENDİ */}
+              <div className="mt-6 pt-6 border-t border-gray-700">
+                <p className="text-gray-400 text-sm mb-3 text-center">Öğretmen misiniz?</p>
+                <div className="flex justify-center">
+                  <a 
+                    href="/OgretmenGiris" 
+                    className="inline-block px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-lg font-medium transition-all hover:scale-[1.02]"
+                  >
+                    👨‍🏫 Öğretmen Girişi
+                  </a>
+                </div>
+                <p className="text-gray-500 text-xs text-center mt-3">
+                  Sadece yetkili öğretmenler için
                 </p>
               </div>
             </div>
