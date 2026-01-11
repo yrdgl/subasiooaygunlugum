@@ -63,12 +63,13 @@ function AyTakvimi() {
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
     
-    // 1 OCAK 2026 DÜZELTMESİ: getDay() = 4 (Perşembe)
-    // Pazartesi=0, Salı=1, Çarşamba=2, Perşembe=3 olacak şekilde
-    let startingDay = firstDay.getDay(); // Pazar=0, Pazartesi=1, ..., Perşembe=4
+    // DÜZELTME: 1 OCAK 2026 Perşembe olacak
+    // getDay(): Pazar=0, Pazartesi=1, Salı=2, Çarşamba=3, Perşembe=4, Cuma=5, Cumartesi=6
+    let startingDay = firstDay.getDay(); // 1 Ocak 2026 için 4 (Perşembe)
     
-    // Pazartesi'den başlayan takvim için: (startingDay + 6) % 7
-    startingDay = (startingDay + 6) % 7; // Bu formül 1 Ocak 2026'yı Perşembe yapar
+    // Pazartesi'den başlayan takvim için: (Pazar=6, Pazartesi=0, Salı=1...)
+    startingDay = startingDay === 0 ? 6 : startingDay - 1;
+    // 1 Ocak 2026: 4-1 = 3 -> Perşembe (Pazartesi=0 olduğu için 3. gün Perşembe)
     
     const days = [];
     
@@ -269,6 +270,7 @@ function AyTakvimi() {
                 const handleClick = () => {
                   if (gun.currentMonth && dateString) {
                     console.log("Tıklanan tarih:", dateString);
+                    // DÜZELTME: Tarihi YeniGunluk sayfasına gönder
                     navigate(`/YeniGunluk?date=${dateString}`);
                   }
                 };
