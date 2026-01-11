@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { FaIdCard, FaLock, FaArrowLeft, FaMoon } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast'; // Bu import'u ekleyin
 
 function OgrenciGiris() {
   const navigate = useNavigate();
+  const { toast } = useToast(); // Toast hook'unu ekleyin
+  
   const [formData, setFormData] = useState({
     ogrenciNo: '',
     sifre: ''
@@ -20,27 +23,41 @@ function OgrenciGiris() {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Validasyon
     if (!formData.ogrenciNo.trim()) {
-      alert('Öğrenci numarası gerekli!');
+      toast({
+        title: "Hata",
+        description: "Öğrenci numarası gerekli!",
+        variant: "destructive"
+      });
       return;
     }
     
     if (formData.sifre.length < 4) {
-      alert('Şifre en az 4 karakter olmalıdır!');
+      toast({
+        title: "Hata",
+        description: "Şifre en az 4 karakter olmalıdır!",
+        variant: "destructive"
+      });
       return;
     }
     
-    console.log('Giriş denemesi:', formData);
-    
     // Demo giriş kontrolü - Öğrenci No: 12345, Şifre: 1234
     if (formData.ogrenciNo === '12345' && formData.sifre === '1234') {
-      alert('Giriş başarılı! Öğrenci paneline yönlendiriliyorsunuz...');
+      toast({
+        title: "Giriş Başarılı",
+        description: "Öğrenci paneline yönlendiriliyorsunuz...",
+      });
+      
+      // 1 saniye sonra otomatik yönlendir
       setTimeout(() => {
         navigate('/OgrenciDashboard');
       }, 1000);
     } else {
-      alert('Demo giriş için:\nÖğrenci No: 12345\nŞifre: 1234\n\n(Firebase eklenince gerçek giriş çalışacak)');
+      toast({
+        title: "Demo Giriş Bilgileri",
+        description: "Öğrenci No: 12345, Şifre: 1234",
+        variant: "destructive"
+      });
     }
   };
 
@@ -48,6 +65,11 @@ function OgrenciGiris() {
     setFormData({
       ogrenciNo: '12345',
       sifre: '1234'
+    });
+    
+    toast({
+      title: "Demo Bilgileri Yüklendi",
+      description: "Giriş yapmak için 'GİRİŞ YAP' butonuna tıklayın.",
     });
   };
 
@@ -176,7 +198,10 @@ function OgrenciGiris() {
               <p className="text-gray-400 text-sm">
                 Şifreni mi unuttun?{' '}
                 <button
-                  onClick={() => alert('Öğretmenine başvur!')}
+                  onClick={() => toast({
+                    title: "Şifre Sıfırlama",
+                    description: "Öğretmeninize başvurun!",
+                  })}
                   className="text-gray-300 hover:text-white underline"
                 >
                   Öğretmenine sor
