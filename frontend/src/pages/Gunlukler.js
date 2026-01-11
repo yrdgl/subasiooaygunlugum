@@ -3,17 +3,16 @@ import {
   FaMoon, FaSearch, FaFilter, FaCalendarAlt, 
   FaArrowLeft, FaEdit, FaTrash, FaEye,
   FaSave, FaTimes, FaCheck
-} from 'react-icons/fa'; // FaPlus KALDIRILDI
+} from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 
 function Gunlukler() {
-  // Doğru ay evreleri ile demo veriler - AY EVRESİ ADI EKLENDİ
   const initialGunlukler = [
     {
       id: 1,
       tarih: "10 Ocak 2026",
-      ayEvresi: "🌒", // Hilal
-      ayEvresiAd: "Hilal", // EKLENDİ
+      ayEvresi: "🌒",
+      ayEvresiAd: "Hilal",
       icerik: "Hilal ayı bugün çok net göründü. İncecik bir hilal şeklindeydi...",
       tamIcerik: "Hilal ayı bugün çok net göründü. İncecik bir hilal şeklindeydi. Hava açıktı ve yıldızlar parlaktı. Gökyüzünde tek başına parlıyordu.",
       goruntulenme: 5,
@@ -22,8 +21,8 @@ function Gunlukler() {
     {
       id: 2,
       tarih: "15 Ocak 2026",
-      ayEvresi: "🌕", // Dolunay
-      ayEvresiAd: "Dolunay", // EKLENDİ
+      ayEvresi: "🌕",
+      ayEvresiAd: "Dolunay",
       icerik: "Ay bugün tam daire şeklindeydi. Çok parlak ve büyüktü...",
       tamIcerik: "Ay bugün tam daire şeklindeydi. Çok parlak ve büyüktü. Bulutlar arasında kaybolup tekrar görünüyordu. Deniz kenarından izlemek harikaydı.",
       goruntulenme: 3,
@@ -33,10 +32,8 @@ function Gunlukler() {
 
   const [gunlukler, setGunlukler] = useState(() => {
     const saved = localStorage.getItem('gunlukVerileri');
-    // Eğer localStorage'da günlük varsa onları al, yoksa initialGunlukler'i kullan
     if (saved) {
       const parsed = JSON.parse(saved);
-      // Eğer localStorage'daki günlüklerde ayEvresiAd yoksa ekleyelim
       return parsed.map(gunluk => ({
         ...gunluk,
         ayEvresiAd: gunluk.ayEvresiAd || getAyEvresiAdFromEmoji(gunluk.ayEvresi)
@@ -63,7 +60,6 @@ function Gunlukler() {
 
   const [duzenlemeVerisi, setDuzenlemeVerisi] = useState(null);
 
-  // Emoji'den ay evresi adını bulma fonksiyonu
   const getAyEvresiAdFromEmoji = (emoji) => {
     const ayEvreleri = [
       { emoji: '🌑', ad: 'Yeni Ay' },
@@ -80,7 +76,6 @@ function Gunlukler() {
     return bulunan ? bulunan.ad : 'Bilinmeyen Evre';
   };
 
-  // Doğru ay evreleri listesi
   const ayEvreleri = [
     { emoji: '🌑', ad: 'Yeni Ay' },
     { emoji: '🌒', ad: 'Hilal' },
@@ -92,7 +87,6 @@ function Gunlukler() {
     { emoji: '🌘', ad: 'Hilal' }
   ];
 
-  // Filtreleme
   const filtrelenmisGunlukler = gunlukler.filter(gunluk => {
     if (filtre.arama && !gunluk.tamIcerik.toLowerCase().includes(filtre.arama.toLowerCase())) {
       return false;
@@ -151,11 +145,6 @@ function Gunlukler() {
   };
 
   const handleDuzenlemeKaydet = () => {
-    if (!duzenlemeVerisi.tamIcerik) {
-      alert('Gözlem içeriği boş olamaz! Not yazmak istemiyorsanız boş bırakabilirsiniz.');
-      return;
-    }
-
     const guncellenmisGunlukler = gunlukler.map(gunluk =>
       gunluk.id === duzenlemeVerisi.id 
         ? { 
@@ -220,7 +209,7 @@ function Gunlukler() {
             />
           </div>
           
-          {/* DOĞRU AY EVRELERİ */}
+          {/* AY EVRELERİ */}
           <div>
             <label className="block text-gray-300 mb-2 font-semibold">Ay Evresi</label>
             <div className="grid grid-cols-4 gap-3">
@@ -295,7 +284,7 @@ function Gunlukler() {
     </div>
   );
 
-  // DETAY MODAL İÇERİĞİ
+  // DETAY MODAL İÇERİĞİ - YAZI TAŞMA SORUNU DÜZELTİLDİ
   const renderDetayModal = () => (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
       <div className="bg-gradient-to-b from-gray-800 to-gray-900 rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-700">
@@ -321,7 +310,8 @@ function Gunlukler() {
           
           <div className="bg-gray-900/50 rounded-xl p-4">
             <h4 className="font-bold mb-2">Gözlem İçeriği</h4>
-            <p className="text-gray-300 whitespace-pre-line">
+            {/* DÜZELTME: Yazı taşmasını engellemek için overflow-wrap ve whitespace */}
+            <p className="text-gray-300 whitespace-pre-wrap break-words overflow-wrap-break-word">
               {modalDurumu.seciliGunluk.tamIcerik || 'Gözlem notu eklenmemiş.'}
             </p>
           </div>
