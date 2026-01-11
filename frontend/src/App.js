@@ -1,6 +1,7 @@
 import React from 'react';
 import './App.css';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from '@/components/ui/toaster'; // BU SATIRI EKLEYİN
 
 // Ana sayfaları import et
 import HomePage from './pages/HomePage';
@@ -86,6 +87,9 @@ function App() {
 
   return (
     <div className="App">
+      {/* Toast bildirimleri için Toaster bileşeni - BU SATIRI EKLEYİN */}
+      <Toaster />
+
       {/* Uygulama Bilgi Notu - Sadece geliştirme modunda göster */}
       {process.env.NODE_ENV === 'development' && (
         <div className="fixed top-0 left-0 right-0 bg-yellow-900/80 text-yellow-200 text-center py-1 text-sm z-50 backdrop-blur-sm">
