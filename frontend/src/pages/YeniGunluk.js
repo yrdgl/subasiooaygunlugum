@@ -35,9 +35,7 @@ function YeniGunluk() {
   const [formData, setFormData] = useState({
     tarih: getTodayDate(),
     ayEvresi: '',
-    gozlem: '',
-    havaDurumu: 'gunesli'
-    // NOTLAR KALDIRILDI
+    gozlem: ''
   });
 
   const [foto, setFoto] = useState(null);
@@ -54,26 +52,15 @@ function YeniGunluk() {
     }
   }, [location]);
 
-  // YeniGunluk.js'deki ayEvreleri array'ini bu şekilde değiştirin:
-
-const ayEvreleri = [
-  { emoji: '🌑', ad: 'Yeni Ay', deger: 'yeni' },
-  { emoji: '🌒', ad: 'Hilal', deger: 'hilal' },
-  { emoji: '🌓', ad: 'İlk Dördün', deger: 'ilk-dordun' },
-  { emoji: '🌔', ad: 'Şişkin Ay', deger: 'siskin' },
-  { emoji: '🌕', ad: 'Dolunay', deger: 'dolunay' },
-  { emoji: '🌖', ad: 'Şişkin Ay', deger: 'siskin-son' },
-  { emoji: '🌗', ad: 'Son Dördün', deger: 'son-dordun' },
-  { emoji: '🌘', ad: 'Hilal', deger: 'hilal-son' }
-];
-
-  const havaDurumlari = [
-    { emoji: '☀️', ad: 'Güneşli', deger: 'gunesli' },
-    { emoji: '⛅', ad: 'Parçalı Bulutlu', deger: 'parcali-bulutlu' },
-    { emoji: '☁️', ad: 'Bulutlu', deger: 'bulutlu' },
-    { emoji: '🌧️', ad: 'Yağmurlu', deger: 'yagmurlu' },
-    { emoji: '⛈️', ad: 'Fırtınalı', deger: 'firtinali' },
-    { emoji: '❄️', ad: 'Karlı', deger: 'karli' }
+  const ayEvreleri = [
+    { emoji: '🌑', ad: 'Yeni Ay', deger: 'yeni' },
+    { emoji: '🌒', ad: 'Hilal', deger: 'hilal' },
+    { emoji: '🌓', ad: 'İlk Dördün', deger: 'ilk-dordun' },
+    { emoji: '🌔', ad: 'Şişkin Ay', deger: 'siskin' },
+    { emoji: '🌕', ad: 'Dolunay', deger: 'dolunay' },
+    { emoji: '🌖', ad: 'Şişkin Ay', deger: 'siskin-son' },
+    { emoji: '🌗', ad: 'Son Dördün', deger: 'son-dordun' },
+    { emoji: '🌘', ad: 'Hilal', deger: 'hilal-son' }
   ];
 
   const handleChange = (e) => {
@@ -118,33 +105,34 @@ const ayEvreleri = [
       return;
     }
     
-    if (!formData.gozlem.trim()) {
-      alert('Lütfen gözlem notlarınızı yazın!');
-      return;
-    }
+    // NOT: Minimum karakter kontrolü kaldırıldı
+    // Kullanıcı isterse boş da bırakabilir
     
-    if (formData.gozlem.length < 50) {
-      alert('Gözlem notlarınız en az 50 karakter olmalıdır!');
-      return;
-    }
+    const secilenAyEvresi = ayEvreleri.find(e => e.deger === formData.ayEvresi);
     
     const gunlukVerisi = {
-      ...formData,
-      tarih: formatDisplayDate(formData.tarih),
       id: Date.now(),
-      olusturmaTarihi: new Date().toISOString(),
+      tarih: formatDisplayDate(formData.tarih),
+      ayEvresi: secilenAyEvresi?.emoji || '🌑',
+      ayEvresiAd: secilenAyEvresi?.ad || 'Yeni Ay',
+      icerik: formData.gozlem && formData.gozlem.length > 100 
+        ? formData.gozlem.substring(0, 100) + '...' 
+        : formData.gozlem || 'Gözlem notu eklenmedi',
+      tamIcerik: formData.gozlem || '',
+      goruntulenme: 0,
+      duzenlemeTarihi: null,
+      olusturmaTarihi: new Date().toLocaleString('tr-TR'),
       foto: foto ? foto.name : null
     };
     
-    // LocalStorage'a kaydet
-    const mevcutGunlukler = JSON.parse(localStorage.getItem('ayGunlukleri') || '[]');
+    const mevcutGunlukler = JSON.parse(localStorage.getItem('gunlukVerileri') || '[]');
     mevcutGunlukler.unshift(gunlukVerisi);
-    localStorage.setItem('ayGunlukleri', JSON.stringify(mevcutGunlukler));
+    localStorage.setItem('gunlukVerileri', JSON.stringify(mevcutGunlukler));
     
-    alert(`✅ Günlük başarıyla kaydedildi!\nTarih: ${formatDisplayDate(formData.tarih)}\nAy Evresi: ${ayEvreleri.find(e => e.deger === formData.ayEvresi)?.ad}`);
+    alert(`✅ Günlük başarıyla kaydedildi!\nTarih: ${formatDisplayDate(formData.tarih)}\nAy Evresi: ${secilenAyEvresi?.ad}`);
     
     setTimeout(() => {
-      navigate('/OgrenciDashboard');
+      navigate('/Gunlukler');
     }, 1500);
   };
 
@@ -158,11 +146,10 @@ const ayEvreleri = [
     setFormData({
       tarih: bugun.toISOString().split('T')[0],
       ayEvresi: secilenAyEvresi,
-      gozlem: `${formatDisplayDate(bugun.toISOString().split('T')[0])} tarihinde ayı gözlemledim. Ay ${secilenAyEvresiAd} evresindeydi ve inanılmaz parlaktı. Gökyüzü tamamen açıktı, yıldızlar da net görünüyordu. Ayın yüzeyindeki kraterleri bile ayırt edebiliyordum. Etrafında hafif bir hale oluşmuştu ve bu görüntü gerçekten büyüleyiciydi.`,
-      havaDurumu: 'gunesli'
+      gozlem: `${formatDisplayDate(bugun.toISOString().split('T')[0])} tarihinde ayı gözlemledim. Ay ${secilenAyEvresiAd} evresindeydi ve inanılmaz parlaktı.`
     });
     
-    setKarakterSayisi(450);
+    setKarakterSayisi(120);
   };
 
   return (
@@ -270,34 +257,14 @@ const ayEvreleri = [
                     )}
                   </div>
 
-                  {/* Hava Durumu */}
-                  <div>
-                    <label className="block text-gray-300 mb-3 text-lg font-semibold">
-                      ⛅ Hava Durumu
-                    </label>
-                    <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
-                      {havaDurumlari.map((hava) => (
-                        <button
-                          key={hava.deger}
-                          type="button"
-                          onClick={() => setFormData(prev => ({ ...prev, havaDurumu: hava.deger }))}
-                          className={`p-3 rounded-xl border-2 flex flex-col items-center justify-center transition-all transform hover:scale-105 ${formData.havaDurumu === hava.deger ? 'border-blue-500 bg-blue-500/10 scale-105' : 'border-gray-700 hover:border-gray-500 hover:bg-gray-700/30'}`}
-                        >
-                          <span className="text-2xl mb-1">{hava.emoji}</span>
-                          <span className="text-xs text-gray-300">{hava.ad}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
                   {/* Gözlem */}
                   <div>
                     <div className="flex items-center justify-between mb-3">
                       <label className="text-gray-300 text-lg font-semibold flex items-center">
-                        📝 Gözlem Notların
+                        📝 Gözlem Notların (Opsiyonel)
                       </label>
-                      <div className={`text-sm ${karakterSayisi >= 50 ? 'text-green-400' : 'text-red-400'}`}>
-                        {karakterSayisi}/50 karakter
+                      <div className={`text-sm ${karakterSayisi > 0 ? 'text-blue-400' : 'text-gray-400'}`}>
+                        {karakterSayisi} karakter
                       </div>
                     </div>
                     <textarea
@@ -305,12 +272,11 @@ const ayEvreleri = [
                       value={formData.gozlem}
                       onChange={handleChange}
                       className="w-full h-48 px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-yellow-500 transition-colors resize-none"
-                      placeholder={`Örnek: "${formatDisplayDate(formData.tarih)} tarihinde ayı gözlemledim. Ay ... evresindeydi. Gökyüzü ...`}
-                      required
+                      placeholder="Gözlem notlarınızı yazın (zorunlu değil)..."
                     />
                     <div className="flex justify-between mt-2">
                       <p className="text-gray-400 text-sm">
-                        {karakterSayisi >= 50 ? '✅ Yeterli karakter sayısı' : '⚠️ En az 50 karakter gerekli'}
+                        Not yazmak istemezseniz boş bırakabilirsiniz
                       </p>
                       <button
                         type="button"
@@ -321,8 +287,6 @@ const ayEvreleri = [
                       </button>
                     </div>
                   </div>
-
-                  {/* EK NOTLAR KALDIRILDI - BU KISIM YOK */}
 
                   {/* Fotoğraf */}
                   <div>
@@ -381,17 +345,17 @@ const ayEvreleri = [
                       onClick={handleDemoDoldur}
                       className="w-full py-3 bg-gradient-to-r from-green-900/50 to-blue-900/50 text-green-300 font-semibold rounded-lg hover:from-green-900/70 hover:to-blue-900/70 transition-colors border border-green-700/50 transform hover:scale-[1.02]"
                     >
-                      📋 2026 Demo Bilgilerini Doldur
+                      📋 Demo Bilgilerini Doldur
                     </button>
 
                     <div className="pt-4">
                       <button
                         type="submit"
-                        disabled={!formData.ayEvresi || karakterSayisi < 50}
-                        className={`w-full py-4 text-white font-bold rounded-lg transition-all transform hover:scale-[1.02] active:scale-95 text-lg ${!formData.ayEvresi || karakterSayisi < 50 ? 'bg-gradient-to-r from-gray-700 to-gray-800 cursor-not-allowed' : 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600'}`}
+                        disabled={!formData.ayEvresi}
+                        className={`w-full py-4 text-white font-bold rounded-lg transition-all transform hover:scale-[1.02] active:scale-95 text-lg ${!formData.ayEvresi ? 'bg-gradient-to-r from-gray-700 to-gray-800 cursor-not-allowed' : 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600'}`}
                       >
                         <FaSave className="inline mr-2" />
-                        {!formData.ayEvresi || karakterSayisi < 50 ? '❌ Eksik Bilgi Var' : '✅ GÜNLÜĞÜ KAYDET'}
+                        {!formData.ayEvresi ? '❌ Ay Evresi Seçilmedi' : '✅ GÜNLÜĞÜ KAYDET'}
                       </button>
                     </div>
                   </div>
@@ -399,24 +363,9 @@ const ayEvreleri = [
               </div>
             </div>
 
-            {/* Sağ: Yardım ve Bilgi */}
+            {/* Sağ: Yardım ve Bilgi - SADECE İPUÇLARI BÖLÜMÜ KALDI */}
             <div className="space-y-6">
-              {/* 2026 Yılı Bilgisi */}
-              <div className="bg-yellow-900/30 rounded-xl p-6 border border-yellow-700/50">
-                <h3 className="text-xl font-bold text-white mb-3">
-                  🎯 2026 Yılı Ay Gözlemleri
-                </h3>
-                <p className="text-gray-300 text-sm mb-3">
-                  Bu yıl (2026) yaptığınız tüm ay gözlemlerini kaydediyorsunuz.
-                </p>
-                <div className="space-y-2 text-xs text-gray-400">
-                  <p>📅 Tarih aralığı: 01 Ocak - 31 Aralık 2026</p>
-                  <p>📊 Hedef: 365 günlük tam bir gözlem kaydı!</p>
-                  <p>🏆 Ödül: Tüm yıl gözlem tamamlama rozeti</p>
-                </div>
-              </div>
-
-              {/* İpuçları */}
+              {/* SADECE İPUÇLARI BÖLÜMÜ - DİĞERLERİ KALDIRILDI */}
               <div className="bg-blue-900/30 rounded-xl p-6 border border-blue-700/50">
                 <h3 className="text-xl font-bold text-white mb-3">
                   💡 İpuçları
@@ -439,43 +388,6 @@ const ayEvreleri = [
                     <span className="text-sm">Hangi renkte göründü?</span>
                   </li>
                 </ul>
-              </div>
-
-              {/* Örnek Gözlem */}
-              <div className="bg-purple-900/30 rounded-xl p-6 border border-purple-700/50">
-                <h3 className="text-xl font-bold text-white mb-3">
-                  📝 Örnek Gözlem (2026)
-                </h3>
-                <div className="bg-gray-900/50 rounded-lg p-4">
-                  <p className="text-gray-300 italic text-sm">
-                    "15 Ocak 2026 tarihinde ayı gözlemledim. Ay Dolunay evresindeydi ve inanılmaz parlaktı. Gökyüzü tamamen açıktı, yıldızlar da net görünüyordu..."
-                  </p>
-                </div>
-              </div>
-
-              {/* Ay Evreleri Bilgisi */}
-              <div className="bg-green-900/30 rounded-xl p-6 border border-green-700/50">
-                <h3 className="text-xl font-bold text-white mb-3">
-                  🌘 2026 Ay Evreleri
-                </h3>
-                <div className="space-y-2 text-sm text-gray-300">
-                  <div className="mb-1">
-                    <p className="text-xs text-gray-400 mb-1">BÜYÜME EVRESİ</p>
-                    <p><span className="text-xl">🌑</span> <strong>Yeni Ay:</strong> Ay görünmez</p>
-                    <p><span className="text-xl">🌘</span> <strong>Hilal (İnce):</strong> İnce hilal</p>
-                    <p><span className="text-xl">🌒</span> <strong>Hilal (Şişkin):</strong> Büyüyen hilal</p>
-                    <p><span className="text-xl">🌓</span> <strong>İlk Dördün:</strong> Yarım ay</p>
-                    <p><span className="text-xl">🌔</span> <strong>Şişkin Ay:</strong> Dolunay'a yakın</p>
-                    <p><span className="text-xl">🌕</span> <strong>Dolunay:</strong> Tam daire</p>
-                  </div>
-                  
-                  <div>
-                    <p className="text-xs text-gray-400 mb-1">KÜÇÜLME EVRESİ</p>
-                    <p><span className="text-xl">🌖</span> <strong>Küçülen Dolunay:</strong> Dolunay'dan sonra</p>
-                    <p><span className="text-xl">🌗</span> <strong>Son Dördün:</strong> Yarım ay</p>
-                    <p><span className="text-xl">🌘</span> <strong>Hilal (Küçülen):</strong> Küçülen hilal</p>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
