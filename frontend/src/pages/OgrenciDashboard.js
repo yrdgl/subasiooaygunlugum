@@ -9,7 +9,7 @@ import { Link, useNavigate } from 'react-router-dom';
 function OgrenciDashboard() {
   const navigate = useNavigate();
   
-  // Demo verileri (Firebase eklenince gerçek veriler gelecek)
+  // Demo verileri
   const [ogrenci] = useState({
     ad: "Ali",
     soyad: "Yılmaz",
@@ -18,12 +18,6 @@ function OgrenciDashboard() {
     ogrenciNo: "12345"
   });
 
-  const [sonGunlukler] = useState([
-    { id: 1, tarih: "9 Oca 2026", ayEvresi: "🌕 Dolunay", durum: "Çok parlak ve büyük görünüyordu" },
-    { id: 2, tarih: "8 Oca 2026", ayEvresi: "🌔 Şişkin Ay", durum: "Bulutlar arasında kayboluyordu" },
-    { id: 3, tarih: "7 Oca 2026", ayEvresi: "🌓 İlk Dördün", durum: "Yarısı görünüyordu, hava açıktı" },
-  ]);
-
   const [bugununBilgisi] = useState({
     tarih: "10 Ocak 2026",
     ayEvresi: "🌖 Son Dördün",
@@ -31,7 +25,6 @@ function OgrenciDashboard() {
   });
 
   const handleCikis = () => {
-    // Firebase eklenince gerçek çıkış yapılacak
     navigate('/');
   };
 
@@ -45,14 +38,6 @@ function OgrenciDashboard() {
 
   const handleAyTakvimi = () => {
     navigate('/AyTakvimi');
-  };
-
-  const handleGunlukDetay = (id) => {
-    alert(`Günlük detay sayfası yakında eklenecek! ID: ${id}`);
-  };
-
-  const handleTumGunlukler = () => {
-    navigate('/Gunlukler');
   };
 
   return (
@@ -192,65 +177,90 @@ function OgrenciDashboard() {
             </button>
           </div>
 
-          {/* Sadece Son Günlükler - İstatistikler kaldırıldı */}
+          {/* AY TAKVİMİ BÖLÜMÜ - SON GÜNLÜKLER YERİNE */}
           <div className="max-w-6xl mx-auto">
-            {/* Son Günlükler - Tam Genişlik */}
             <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center">
-                  <FaHistory className="text-2xl text-blue-400 mr-3" />
-                  <h2 className="text-2xl font-bold">Son Günlüklerin</h2>
+                  <FaCalendarAlt className="text-2xl text-yellow-400 mr-3" />
+                  <h2 className="text-2xl font-bold">🌙 Ay Takvimi</h2>
                 </div>
                 <button 
-                  onClick={handleTumGunlukler}
-                  className="text-sm text-blue-400 hover:text-blue-300"
+                  onClick={handleAyTakvimi}
+                  className="text-sm text-yellow-400 hover:text-yellow-300"
                 >
-                  Tümünü Gör →
+                  Tam Ekran Aç →
                 </button>
               </div>
               
+              {/* Mini Ay Takvimi Görünümü */}
               <div className="space-y-4">
-                {sonGunlukler.map((gunluk) => (
-                  <button 
-                    key={gunluk.id} 
-                    onClick={() => handleGunlukDetay(gunluk.id)}
-                    className="w-full p-4 bg-gray-900/50 rounded-xl hover:bg-gray-900/70 transition-colors text-left"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center">
-                        <span className="text-2xl mr-3">{gunluk.ayEvresi.split(' ')[0]}</span>
-                        <div>
-                          <p className="font-semibold">{gunluk.ayEvresi}</p>
-                          <p className="text-sm text-gray-400">{gunluk.tarih}</p>
-                        </div>
-                      </div>
-                      <div className="text-gray-400">
-                        <FaArrowRight />
-                      </div>
-                    </div>
-                    <p className="text-gray-300 text-sm">
-                      "{gunluk.durum}"
-                    </p>
-                  </button>
-                ))}
-              </div>
-              
-              {/* Boş günlük uyarısı */}
-              {sonGunlukler.length === 0 && (
-                <div className="text-center py-8">
-                  <div className="text-5xl mb-4">🌑</div>
-                  <h3 className="text-xl font-bold mb-2">Henüz Günlüğün Yok</h3>
-                  <p className="text-gray-400 mb-4">
-                    İlk ay gözlemini kaydetmeye ne dersin?
+                <div className="bg-gray-900/50 rounded-xl p-6 text-center">
+                  <div className="text-7xl mb-4 animate-pulse">🌕</div>
+                  <h3 className="text-xl font-bold mb-2">Dolunay - Ocak 2026</h3>
+                  <p className="text-gray-300 mb-4">
+                    Bu ayın en parlak evresi 15 Ocak'ta
                   </p>
-                  <button 
-                    onClick={handleYeniGunluk}
-                    className="px-6 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-lg hover:from-yellow-600 hover:to-orange-600"
+                  <div className="grid grid-cols-7 gap-2 mb-4">
+                    {['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'].map((gun, index) => (
+                      <div key={index} className="text-center p-2 text-sm text-gray-400">
+                        {gun}
+                      </div>
+                    ))}
+                    {/* Ay takvimi günleri - basit versiyon */}
+                    {Array.from({ length: 31 }, (_, i) => i + 1).map((gun) => (
+                      <div 
+                        key={gun} 
+                        className={`text-center p-2 text-sm rounded-lg ${gun === 10 ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/50' : 'text-gray-400 hover:bg-gray-800/50'}`}
+                      >
+                        {gun}
+                        {gun === 10 && <div className="text-xs mt-1">🌖</div>}
+                        {gun === 15 && <div className="text-xs mt-1">🌕</div>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Ay Evreleri Özeti */}
+                <div className="grid grid-cols-4 gap-3">
+                  <div className="bg-gray-900/30 rounded-lg p-3 text-center">
+                    <div className="text-2xl">🌑</div>
+                    <p className="text-xs text-gray-400 mt-1">Yeni Ay</p>
+                    <p className="text-xs text-yellow-300">5 Oca</p>
+                  </div>
+                  <div className="bg-gray-900/30 rounded-lg p-3 text-center">
+                    <div className="text-2xl">🌓</div>
+                    <p className="text-xs text-gray-400 mt-1">İlk Dördün</p>
+                    <p className="text-xs text-yellow-300">12 Oca</p>
+                  </div>
+                  <div className="bg-gray-900/30 rounded-lg p-3 text-center">
+                    <div className="text-2xl">🌕</div>
+                    <p className="text-xs text-gray-400 mt-1">Dolunay</p>
+                    <p className="text-xs text-yellow-300">15 Oca</p>
+                  </div>
+                  <div className="bg-gray-900/30 rounded-lg p-3 text-center">
+                    <div className="text-2xl">🌗</div>
+                    <p className="text-xs text-gray-400 mt-1">Son Dördün</p>
+                    <p className="text-xs text-yellow-300">22 Oca</p>
+                  </div>
+                </div>
+                
+                {/* Hızlı Navigasyon */}
+                <div className="flex justify-center space-x-3 pt-4">
+                  <button
+                    onClick={() => navigate('/YeniGunluk?date=2026-01-15')}
+                    className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all text-sm"
                   >
-                    İlk Günlüğü Yaz
+                    📝 15 Ocak Günlüğü
+                  </button>
+                  <button
+                    onClick={handleAyTakvimi}
+                    className="px-4 py-2 bg-gradient-to-r from-yellow-600 to-yellow-700 rounded-lg hover:from-yellow-700 hover:to-yellow-800 transition-all text-sm"
+                  >
+                    📅 Tam Takvim
                   </button>
                 </div>
-              )}
+              </div>
             </div>
           </div>
 
