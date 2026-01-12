@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-// DEMO ÖĞRENCİ VERİLERİ - SADECE 5. SINIF
+// DEMO ÖĞRENCİ VERİLERİ - SADECE 5. SINIF (MEVCUT VE GELECEK)
 const demoOgrenciler = [
   { 
     id: 1, 
@@ -28,18 +28,6 @@ const demoOgrenciler = [
   },
   { 
     id: 3, 
-    ad: "Mehmet Kaya", 
-    sinif: "5-A", 
-    egitimYili: "2024-2025", // ✅ GEÇEN YIL MEZUN
-    sonGunluk: "2025-06-15", 
-    durum: "Mezun", 
-    ogrenciNo: "2001",
-    gunlukSayisi: 7,
-    avatar: "👦",
-    aciklama: "2025 Temmuz'da mezun oldu"
-  },
-  { 
-    id: 4, 
     ad: "Zeynep Arslan", 
     sinif: "5-B", 
     egitimYili: "2026-2027", // ✅ GELECEK 5. SINIF
@@ -51,7 +39,7 @@ const demoOgrenciler = [
     aciklama: "2026-2027'de 5. sınıf olacak"
   },
   { 
-    id: 5, 
+    id: 4, 
     ad: "Can Öztürk", 
     sinif: "5-A", 
     egitimYili: "2025-2026", // ✅ MEVCUT 5. SINIF
@@ -98,7 +86,7 @@ const demoGunlukler = [
   },
   {
     id: 4,
-    ogrenciId: 5, // Can Öztürk
+    ogrenciId: 4, // Can Öztürk
     ogrenciAd: "Can Öztürk",
     tarih: "2026-01-09",
     baslik: "Ay ve Bulutlar",
@@ -114,8 +102,8 @@ function OgretmenDashboard() {
   const [seciliEgitimYili, setSeciliEgitimYili] = useState('2025-2026');
   const [seciliOgrenci, setSeciliOgrenci] = useState(null);
 
-  // FİLTRE SEÇENEKLERİ - SADECE 5. SINIF YILLARI
-  const egitimYillari = ['Tümü', '2025-2026', '2024-2025', '2026-2027'];
+  // FİLTRE SEÇENEKLERİ - SADECE MEVCUT VE GELECEK 5. SINIF
+  const egitimYillari = ['Tümü', '2025-2026', '2026-2027']; // ❌ 2024-2025 YOK
   const siniflar = ['Tümü', '5-A', '5-B'];
 
   // MEVCUT EĞİTİM YILI
@@ -136,11 +124,10 @@ function OgretmenDashboard() {
   // İstatistikleri hesapla
   const toplamOgrenci = filtrelenmisOgrenciler.length;
   const aktifOgrenci = filtrelenmisOgrenciler.filter(o => o.durum === 'Aktif').length;
-  const mezunOgrenci = filtrelenmisOgrenciler.filter(o => o.durum === 'Mezun').length;
   const gelecekOgrenci = filtrelenmisOgrenciler.filter(o => o.durum === 'Gelecek').length;
   const toplamGunluk = filtrelenmisOgrenciler.reduce((toplam, ogrenci) => toplam + ogrenci.gunlukSayisi, 0);
 
-  // ✅ DÜZELTİLDİ: Günlükleri Gör butonu çalışacak
+  // Günlükleri Gör butonu
   const handleOgrenciSec = (ogrenci) => {
     console.log('Öğrenci seçildi:', ogrenci.ad, 'ID:', ogrenci.id);
     setSeciliOgrenci(ogrenci);
@@ -181,8 +168,8 @@ function OgretmenDashboard() {
           </div>
         </header>
 
-        {/* İSTATİSTİK KARTLARI */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        {/* İSTATİSTİK KARTLARI - 3 KART (MEZUN YOK) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-gradient-to-br from-blue-900/40 to-indigo-900/40 backdrop-blur-xl rounded-2xl border border-blue-700/30 p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-gray-300">Filtrelenmiş Öğrenci</h3>
@@ -203,15 +190,6 @@ function OgretmenDashboard() {
             <p className="text-sm text-green-300 mt-2">5. sınıf ({currentEgitimYili})</p>
           </div>
           
-          <div className="bg-gradient-to-br from-yellow-900/40 to-orange-900/40 backdrop-blur-xl rounded-2xl border border-yellow-700/30 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-gray-300">Mezun Öğrenci</h3>
-              <div className="text-2xl">🎓</div>
-            </div>
-            <p className="text-3xl font-bold text-white">{mezunOgrenci}</p>
-            <p className="text-sm text-yellow-300 mt-2">2024-2025 (mezun)</p>
-          </div>
-          
           <div className="bg-gradient-to-br from-purple-900/40 to-pink-900/40 backdrop-blur-xl rounded-2xl border border-purple-700/30 p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-gray-300">Gelecek Öğrenci</h3>
@@ -227,7 +205,7 @@ function OgretmenDashboard() {
           <h2 className="text-2xl font-bold mb-6 text-white">🌌 Filtreleme Seçenekleri</h2>
           
           <div className="grid md:grid-cols-2 gap-6">
-            {/* EĞİTİM YILI FİLTRELEME */}
+            {/* EĞİTİM YILI FİLTRELEME - SADECE 2 YIL */}
             <div>
               <h3 className="text-lg font-bold mb-3 text-gray-300 flex items-center gap-2">
                 <span>📅</span> Eğitim Yılı
@@ -241,8 +219,6 @@ function OgretmenDashboard() {
                       seciliEgitimYili === yil
                         ? yil === currentEgitimYili
                           ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-md'
-                          : yil === '2024-2025'
-                          ? 'bg-gradient-to-r from-yellow-600 to-orange-600 text-white shadow-md'
                           : yil === '2026-2027'
                           ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md'
                           : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
@@ -251,12 +227,12 @@ function OgretmenDashboard() {
                   >
                     {yil === 'Tümü' ? 'Tüm Yıllar' : yil}
                     {yil === currentEgitimYili && ' (Mevcut)'}
+                    {yil === '2026-2027' && ' (Gelecek)'}
                   </button>
                 ))}
               </div>
               <div className="mt-3 text-sm">
                 <p className="text-green-400 mb-1">✅ <strong>2025-2026:</strong> Mevcut 5. sınıf öğrencileri</p>
-                <p className="text-yellow-400 mb-1">🎓 <strong>2024-2025:</strong> Geçen yıl mezun oldu</p>
                 <p className="text-purple-400">🔮 <strong>2026-2027:</strong> Gelecek yıl 5. sınıf olacak</p>
               </div>
             </div>
@@ -318,12 +294,9 @@ function OgretmenDashboard() {
                 <span className={`px-4 py-2 rounded-xl text-sm font-medium ${
                   seciliOgrenci.durum === 'Aktif' 
                     ? 'bg-gradient-to-r from-green-900/50 to-emerald-900/50 text-green-300 border border-green-700/50' 
-                    : seciliOgrenci.durum === 'Mezun'
-                    ? 'bg-gradient-to-r from-yellow-900/50 to-orange-900/50 text-yellow-300 border border-yellow-700/50'
                     : 'bg-gradient-to-r from-purple-900/50 to-pink-900/50 text-purple-300 border border-purple-700/50'
                 }`}>
                   {seciliOgrenci.durum}
-                  {seciliOgrenci.durum === 'Mezun' && ' (2025)'}
                   {seciliOgrenci.durum === 'Gelecek' && ' (5. sınıf olacak)'}
                 </span>
               </div>
@@ -389,8 +362,7 @@ function OgretmenDashboard() {
                 </div>
                 <div className="text-sm bg-gray-900/50 px-4 py-2 rounded-xl border border-gray-700">
                   <span className="text-green-400">✅ Aktif</span> • 
-                  <span className="text-yellow-400 mx-2">🎓 Mezun</span> • 
-                  <span className="text-purple-400">🔮 Gelecek</span>
+                  <span className="text-purple-400 mx-2">🔮 Gelecek</span>
                 </div>
               </div>
             </div>
@@ -431,9 +403,7 @@ function OgretmenDashboard() {
                           <div className="flex items-center gap-2">
                             <span>📅</span>
                             <span className={
-                              ogrenci.egitimYili === currentEgitimYili ? "text-green-400" :
-                              ogrenci.egitimYili === '2024-2025' ? "text-yellow-400" :
-                              "text-purple-400"
+                              ogrenci.egitimYili === currentEgitimYili ? "text-green-400" : "text-purple-400"
                             }>
                               {ogrenci.egitimYili}
                             </span>
@@ -443,12 +413,9 @@ function OgretmenDashboard() {
                           <span className={`px-4 py-2 rounded-xl text-sm font-medium ${
                             ogrenci.durum === 'Aktif' 
                               ? 'bg-gradient-to-r from-green-900/50 to-emerald-900/50 text-green-300 border border-green-700/50' 
-                              : ogrenci.durum === 'Mezun'
-                              ? 'bg-gradient-to-r from-yellow-900/50 to-orange-900/50 text-yellow-300 border border-yellow-700/50'
                               : 'bg-gradient-to-r from-purple-900/50 to-pink-900/50 text-purple-300 border border-purple-700/50'
                           }`}>
                             {ogrenci.durum}
-                            {ogrenci.durum === 'Mezun' && ' (2025)'}
                             {ogrenci.durum === 'Gelecek' && ' (5. sınıf olacak)'}
                           </span>
                         </td>
@@ -490,14 +457,10 @@ function OgretmenDashboard() {
             )}
 
             <div className="p-6 bg-gradient-to-r from-blue-900/20 to-purple-900/20 text-center text-gray-300 text-sm border-t border-white/10">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex items-center justify-center gap-2">
                   <span className="text-green-400 text-lg">✅</span>
                   <span><strong>2025-2026:</strong> Mevcut 5. sınıf öğrencileri</span>
-                </div>
-                <div className="flex items-center justify-center gap-2">
-                  <span className="text-yellow-400 text-lg">🎓</span>
-                  <span><strong>2024-2025:</strong> Geçen yıl mezun oldu</span>
                 </div>
                 <div className="flex items-center justify-center gap-2">
                   <span className="text-purple-400 text-lg">🔮</span>
