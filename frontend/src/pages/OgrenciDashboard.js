@@ -1,4 +1,4 @@
-// src/pages/OgrenciDashboard.js - SADELEŞTİRİLMİŞ VERSİYON
+// src/pages/OgrenciDashboard.js - SADELEŞTİRİLMİŞ SON HAL
 
 import React, { useState } from 'react';
 import { 
@@ -27,28 +27,6 @@ function OgrenciDashboard() {
     ogrenciNo: "12345",
     toplamPuan: 42
   });
-
-  // Son günlükler
-  const [sonGunlukler] = useState([
-    { 
-      id: 1, 
-      tarih: "10 Ocak 2026", 
-      baslik: "Ay'ın Detaylı Gözlemi", 
-      ayEvresi: "🌕"
-    },
-    { 
-      id: 2, 
-      tarih: "8 Ocak 2026", 
-      baslik: "Ay Evreleri Karşılaştırması", 
-      ayEvresi: "🌓"
-    },
-    { 
-      id: 3, 
-      tarih: "5 Ocak 2026", 
-      baslik: "Bulutlu Gecede Ay", 
-      ayEvresi: "🌒"
-    }
-  ]);
 
   const handleCikis = () => {
     navigate('/');
@@ -117,7 +95,7 @@ function OgrenciDashboard() {
             </p>
           </div>
 
-          {/* Toplam Puan - SADELEŞTİRİLMİŞ */}
+          {/* Toplam Puan - İSTEDİĞİNİZ GİBİ */}
           <div className="bg-gradient-to-r from-yellow-900/20 to-yellow-800/20 rounded-2xl p-6 mb-8 border border-yellow-700/30">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
@@ -144,7 +122,6 @@ function OgrenciDashboard() {
 
           {/* Hızlı Eylemler */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            {/* Eylem 1 - Yeni Günlük */}
             <button 
               onClick={handleYeniGunluk}
               className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-blue-500 transition-all duration-300 hover:scale-[1.02] text-left"
@@ -164,7 +141,6 @@ function OgrenciDashboard() {
               </div>
             </button>
 
-            {/* Eylem 2 - Geçmiş Günlükler */}
             <button 
               onClick={handleGecmisGunlukler}
               className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-purple-500 transition-all duration-300 hover:scale-[1.02] text-left"
@@ -184,7 +160,6 @@ function OgrenciDashboard() {
               </div>
             </button>
 
-            {/* Eylem 3 - Ay Takvimi */}
             <button 
               onClick={handleAyTakvimi}
               className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-green-500 transition-all duration-300 hover:scale-[1.02] text-left"
@@ -215,12 +190,6 @@ function OgrenciDashboard() {
                   <p className="text-gray-300">
                     Yeni bir günlük yazarak öğretmeninden yıldız kazanabilirsin!
                   </p>
-                  <div className="mt-4 flex items-center">
-                    <FaStar className="text-yellow-400 mr-2" />
-                    <span className="text-yellow-300">
-                      Her günlük için 1-5 yıldız alabilirsin
-                    </span>
-                  </div>
                 </div>
               </div>
               
