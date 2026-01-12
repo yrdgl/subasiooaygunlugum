@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 
-// DEMO ÖĞRENCİ VERİLERİ - SADECE 5. SINIF (MEVCUT VE GELECEK)
+// DEMO ÖĞRENCİ VERİLERİ
 const demoOgrenciler = [
   { 
     id: 1, 
     ad: "Ahmet Yılmaz", 
     sinif: "5-A", 
-    egitimYili: "2025-2026", // ✅ MEVCUT 5. SINIF
+    egitimYili: "2025-2026",
     sonGunluk: "2026-01-15", 
     durum: "Aktif", 
     ogrenciNo: "1001",
@@ -18,7 +18,7 @@ const demoOgrenciler = [
     id: 2, 
     ad: "Ayşe Demir", 
     sinif: "5-B", 
-    egitimYili: "2025-2026", // ✅ MEVCUT 5. SINIF
+    egitimYili: "2025-2026",
     sonGunluk: "2026-01-14", 
     durum: "Aktif", 
     ogrenciNo: "1002",
@@ -30,7 +30,7 @@ const demoOgrenciler = [
     id: 3, 
     ad: "Zeynep Arslan", 
     sinif: "5-B", 
-    egitimYili: "2026-2027", // ✅ GELECEK 5. SINIF
+    egitimYili: "2026-2027",
     sonGunluk: "-", 
     durum: "Gelecek", 
     ogrenciNo: "3001",
@@ -42,7 +42,7 @@ const demoOgrenciler = [
     id: 4, 
     ad: "Can Öztürk", 
     sinif: "5-A", 
-    egitimYili: "2025-2026", // ✅ MEVCUT 5. SINIF
+    egitimYili: "2025-2026",
     sonGunluk: "2026-01-09", 
     durum: "Aktif", 
     ogrenciNo: "1003",
@@ -52,47 +52,55 @@ const demoOgrenciler = [
   },
 ];
 
-// DEMO GÜNLÜK VERİLERİ - TÜM ÖĞRENCİLER İÇİN
+// DEMO GÜNLÜK VERİLERİ - OGRETMEN YILDIZI ALANI EKLENDİ
 const demoGunlukler = [
   {
     id: 1,
-    ogrenciId: 1, // Ahmet Yılmaz
+    ogrenciId: 1,
     ogrenciAd: "Ahmet Yılmaz",
     tarih: "2026-01-15",
     baslik: "Ayın Hareketleri",
     icerik: "Ay bugün çok parlaktı. Gökyüzünde net görünüyordu.",
     ayFazi: "🌕 Dolunay",
-    yildiz: "4.5"
+    yildiz: "4.5",
+    ogretmenYildizi: 0, // ✅ YENİ: Öğretmen yıldızı (0-5)
+    ogretmenYildizVerildi: false
   },
   {
     id: 2,
-    ogrenciId: 1, // Ahmet Yılmaz (2. günlük)
+    ogrenciId: 1,
     ogrenciAd: "Ahmet Yılmaz",
     tarih: "2026-01-10",
     baslik: "Yeni Ay Gözlemi",
     icerik: "Ay neredeyse görünmüyordu. Sadece ince bir hilal vardı.",
     ayFazi: "🌑 Hilal",
-    yildiz: "3.0"
+    yildiz: "3.0",
+    ogretmenYildizi: 4, // ✅ ÖRNEK: 4 yıldız verilmiş
+    ogretmenYildizVerildi: true
   },
   {
     id: 3,
-    ogrenciId: 2, // Ayşe Demir
+    ogrenciId: 2,
     ogrenciAd: "Ayşe Demir",
     tarih: "2026-01-14",
     baslik: "Gözlem Notlarım",
     icerik: "Ay'ın sağ tarafı aydınlıktı. Güzel bir manzara.",
     ayFazi: "🌓 Yarımay",
-    yildiz: "5.0"
+    yildiz: "5.0",
+    ogretmenYildizi: 5, // ✅ ÖRNEK: 5 yıldız verilmiş
+    ogretmenYildizVerildi: true
   },
   {
     id: 4,
-    ogrenciId: 4, // Can Öztürk
+    ogrenciId: 4,
     ogrenciAd: "Can Öztürk",
     tarih: "2026-01-09",
     baslik: "Ay ve Bulutlar",
     icerik: "Bulutlu bir geceydi. Ay bazen görünüyordu.",
     ayFazi: "🌔 Şişkin Ay",
-    yildiz: "4.0"
+    yildiz: "4.0",
+    ogretmenYildizi: 3, // ✅ ÖRNEK: 3 yıldız verilmiş
+    ogretmenYildizVerildi: true
   },
 ];
 
@@ -101,35 +109,44 @@ function OgretmenDashboard() {
   const [seciliSinif, setSeciliSinif] = useState('Tümü');
   const [seciliEgitimYili, setSeciliEgitimYili] = useState('2025-2026');
   const [seciliOgrenci, setSeciliOgrenci] = useState(null);
+  const [gunlukler, setGunlukler] = useState(demoGunlukler); // ✅ State olarak
 
-  // FİLTRE SEÇENEKLERİ - SADECE MEVCUT VE GELECEK 5. SINIF
-  const egitimYillari = ['Tümü', '2025-2026', '2026-2027']; // ❌ 2024-2025 YOK
+  const egitimYillari = ['Tümü', '2025-2026', '2026-2027'];
   const siniflar = ['Tümü', '5-A', '5-B'];
-
-  // MEVCUT EĞİTİM YILI
   const currentEgitimYili = "2025-2026";
 
-  // Filtreleme işlemi
   const filtrelenmisOgrenciler = ogrenciler.filter(ogrenci => {
     const sinifUygun = seciliSinif === 'Tümü' || ogrenci.sinif === seciliSinif;
     const yilUygun = seciliEgitimYili === 'Tümü' || ogrenci.egitimYili === seciliEgitimYili;
     return sinifUygun && yilUygun;
   });
 
-  // Seçili öğrencinin günlüklerini filtrele
   const ogrenciGunlukleri = seciliOgrenci 
-    ? demoGunlukler.filter(g => g.ogrenciId === seciliOgrenci.id)
+    ? gunlukler.filter(g => g.ogrenciId === seciliOgrenci.id)
     : [];
 
-  // İstatistikleri hesapla
   const toplamOgrenci = filtrelenmisOgrenciler.length;
   const aktifOgrenci = filtrelenmisOgrenciler.filter(o => o.durum === 'Aktif').length;
   const gelecekOgrenci = filtrelenmisOgrenciler.filter(o => o.durum === 'Gelecek').length;
   const toplamGunluk = filtrelenmisOgrenciler.reduce((toplam, ogrenci) => toplam + ogrenci.gunlukSayisi, 0);
 
-  // Günlükleri Gör butonu
+  // ✅ YENİ: Yıldız verme fonksiyonu
+  const handleYildizVer = (gunlukId, yildiz) => {
+    setGunlukler(prev => prev.map(gunluk => {
+      if (gunluk.id === gunlukId) {
+        return {
+          ...gunluk,
+          ogretmenYildizi: yildiz,
+          ogretmenYildizVerildi: true
+        };
+      }
+      return gunluk;
+    }));
+    
+    alert(`⭐ ${yildiz} yıldız verildi! Öğrenci görebilecek.`);
+  };
+
   const handleOgrenciSec = (ogrenci) => {
-    console.log('Öğrenci seçildi:', ogrenci.ad, 'ID:', ogrenci.id);
     setSeciliOgrenci(ogrenci);
   };
 
@@ -146,7 +163,6 @@ function OgretmenDashboard() {
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto">
-        {/* BAŞLIK */}
         <header className="mb-8 pt-8">
           <div className="flex items-center justify-between">
             <div>
@@ -168,7 +184,6 @@ function OgretmenDashboard() {
           </div>
         </header>
 
-        {/* İSTATİSTİK KARTLARI - 3 KART (MEZUN YOK) */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-gradient-to-br from-blue-900/40 to-indigo-900/40 backdrop-blur-xl rounded-2xl border border-blue-700/30 p-6">
             <div className="flex items-center justify-between mb-4">
@@ -200,12 +215,10 @@ function OgretmenDashboard() {
           </div>
         </div>
 
-        {/* FİLTRELEME ALANI */}
         <div className="bg-gradient-to-br from-[#1a1f3a]/80 to-[#0a0e27]/80 backdrop-blur-xl rounded-2xl border border-white/10 p-6 mb-8">
           <h2 className="text-2xl font-bold mb-6 text-white">🌌 Filtreleme Seçenekleri</h2>
           
           <div className="grid md:grid-cols-2 gap-6">
-            {/* EĞİTİM YILI FİLTRELEME - SADECE 2 YIL */}
             <div>
               <h3 className="text-lg font-bold mb-3 text-gray-300 flex items-center gap-2">
                 <span>📅</span> Eğitim Yılı
@@ -237,7 +250,6 @@ function OgretmenDashboard() {
               </div>
             </div>
 
-            {/* SINIF FİLTRELEME */}
             <div>
               <h3 className="text-lg font-bold mb-3 text-gray-300 flex items-center gap-2">
                 <span>🏫</span> Sınıf
@@ -265,9 +277,7 @@ function OgretmenDashboard() {
         </div>
 
         {seciliOgrenci ? (
-          /* ÖĞRENCİ DETAY SAYFASI */
           <div className="bg-gradient-to-br from-[#1a1f3a]/80 to-[#0a0e27]/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden mb-8">
-            {/* ÖĞRENCİ BİLGİ BAŞLIĞI */}
             <div className="p-8 border-b border-white/10 bg-gradient-to-r from-blue-900/30 to-purple-900/30">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-6">
@@ -302,11 +312,15 @@ function OgretmenDashboard() {
               </div>
             </div>
 
-            {/* GÜNLÜK LİSTESİ */}
             <div className="p-8">
-              <h3 className="text-2xl font-bold mb-6 text-white flex items-center gap-3">
-                <span>📖</span> Günlük Kayıtları ({ogrenciGunlukleri.length})
-              </h3>
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-2xl font-bold text-white flex items-center gap-3">
+                  <span>📖</span> Günlük Kayıtları ({ogrenciGunlukleri.length})
+                </h3>
+                <div className="text-sm bg-yellow-900/30 px-4 py-2 rounded-xl border border-yellow-700/50">
+                  <span className="text-yellow-300">⭐</span> Öğrenciler yıldızlarını görecek
+                </div>
+              </div>
               
               {ogrenciGunlukleri.length > 0 ? (
                 <div className="space-y-6">
@@ -329,11 +343,65 @@ function OgretmenDashboard() {
                             {'★'.repeat(Math.floor(gunluk.yildiz))}
                             {'☆'.repeat(5 - Math.floor(gunluk.yildiz))}
                           </div>
-                          <span className="text-sm text-gray-400 mt-1">{gunluk.yildiz} / 5.0</span>
+                          <span className="text-sm text-gray-400 mt-1">Öğrenci: {gunluk.yildiz} / 5.0</span>
                         </div>
                       </div>
+                      
                       <div className="bg-gray-900/30 rounded-xl p-4 mt-4 border border-gray-800/50">
-                        <p className="text-gray-300 leading-relaxed">{gunluk.icerik}</p>
+                        <p className="text-gray-300 leading-relaxed mb-4">{gunluk.icerik}</p>
+                        
+                        {/* ✅ YENİ: ÖĞRETMEN YILDIZ VERME BÖLÜMÜ */}
+                        <div className="mt-4 pt-4 border-t border-gray-800/50">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <h5 className="font-bold text-white mb-2 flex items-center gap-2">
+                                <span className="text-yellow-400">👨‍🏫</span> 
+                                Öğretmen Değerlendirmesi
+                              </h5>
+                              {gunluk.ogretmenYildizVerildi ? (
+                                <div className="flex items-center gap-3">
+                                  <div className="text-yellow-400 text-2xl">
+                                    {'★'.repeat(gunluk.ogretmenYildizi)}
+                                    {'☆'.repeat(5 - gunluk.ogretmenYildizi)}
+                                  </div>
+                                  <span className="text-white font-bold">{gunluk.ogretmenYildizi} / 5</span>
+                                  <button
+                                    onClick={() => handleYildizVer(gunluk.id, 0)}
+                                    className="text-sm text-gray-400 hover:text-white ml-4"
+                                  >
+                                    ✏️ Değiştir
+                                  </button>
+                                </div>
+                              ) : (
+                                <p className="text-gray-400 text-sm">Henüz değerlendirilmemiş</p>
+                              )}
+                            </div>
+                            
+                            {/* YILDIZ VERME BUTONLARI */}
+                            <div className="flex flex-col items-end">
+                              <p className="text-gray-400 text-sm mb-2">Yıldız Ver:</p>
+                              <div className="flex gap-1">
+                                {[1, 2, 3, 4, 5].map(yildiz => (
+                                  <button
+                                    key={yildiz}
+                                    onClick={() => handleYildizVer(gunluk.id, yildiz)}
+                                    className={`px-3 py-1 rounded-lg transition-all ${
+                                      gunluk.ogretmenYildizi === yildiz
+                                        ? 'bg-yellow-600 text-white'
+                                        : 'bg-gray-800 hover:bg-gray-700 text-gray-300'
+                                    }`}
+                                  >
+                                    {yildiz} ★
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="mt-3 text-xs text-gray-500">
+                            ⓘ Öğrenci bu yıldızı günlüklerinde görecek
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -342,13 +410,11 @@ function OgretmenDashboard() {
                 <div className="text-center py-12">
                   <div className="text-6xl mb-4 opacity-50">📭</div>
                   <p className="text-xl text-gray-400">Bu öğrencinin henüz günlüğü yok.</p>
-                  <p className="text-gray-500 mt-2">Öğrenci henüz ay gözlemi yapmamış.</p>
                 </div>
               )}
             </div>
           </div>
         ) : (
-          /* ÖĞRENCİ LİSTESİ */
           <div className="bg-gradient-to-br from-[#1a1f3a]/80 to-[#0a0e27]/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden">
             <div className="p-8 border-b border-white/10">
               <div className="flex justify-between items-center">
@@ -471,7 +537,6 @@ function OgretmenDashboard() {
           </div>
         )}
 
-        {/* FOOTER */}
         <div className="mt-8 text-center text-gray-500 text-sm">
           <p>Ay Günlüğü • 5. Sınıf Öğretmen Paneli • {new Date().getFullYear()}</p>
           <p className="text-gray-600 text-xs mt-1">Mevcut Eğitim Yılı: {currentEgitimYili} • Sadece 5. sınıf öğrencileri</p>
