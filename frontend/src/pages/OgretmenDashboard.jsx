@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 
-// DEMO ÖĞRENCİ VERİLERİ
+// DEMO ÖĞRENCİ VERİLERİ - EĞİTİM YILLARI EKLENDİ
 const demoOgrenciler = [
   { 
     id: 1, 
     ad: "Ahmet Yılmaz", 
     sinif: "5-A", 
+    egitimYili: "2026-2027",
     sonGunluk: "2026-01-15", 
     durum: "Aktif",
-    email: "ahmet@demo.com",
+    ogrenciNo: "1001",
     gunlukSayisi: 3,
     avatar: "👦"
   },
@@ -16,39 +17,43 @@ const demoOgrenciler = [
     id: 2, 
     ad: "Ayşe Demir", 
     sinif: "5-B", 
+    egitimYili: "2026-2027",
     sonGunluk: "2026-01-14", 
     durum: "Aktif",
-    email: "ayse@demo.com",
+    ogrenciNo: "1002",
     gunlukSayisi: 5,
     avatar: "👧"
   },
   { 
     id: 3, 
     ad: "Mehmet Kaya", 
-    sinif: "6-A", 
-    sonGunluk: "2026-01-12", 
-    durum: "Aktif",
-    email: "mehmet@demo.com",
+    sinif: "5-A", 
+    egitimYili: "2025-2026",
+    sonGunluk: "2025-12-20", 
+    durum: "Mezun",
+    ogrenciNo: "2001",
     gunlukSayisi: 7,
     avatar: "👦"
   },
   { 
     id: 4, 
     ad: "Zeynep Arslan", 
-    sinif: "6-B", 
-    sonGunluk: "2026-01-10", 
-    durum: "Pasif",
-    email: "zeynep@demo.com",
+    sinif: "5-B", 
+    egitimYili: "2025-2026",
+    sonGunluk: "2025-12-15", 
+    durum: "Mezun",
+    ogrenciNo: "2002",
     gunlukSayisi: 2,
     avatar: "👧"
   },
   { 
     id: 5, 
     ad: "Can Öztürk", 
-    sinif: "7-A", 
+    sinif: "5-A", 
+    egitimYili: "2026-2027",
     sonGunluk: "2026-01-09", 
     durum: "Aktif",
-    email: "can@demo.com",
+    ogrenciNo: "1003",
     gunlukSayisi: 4,
     avatar: "👦"
   },
@@ -91,7 +96,21 @@ const demoGunlukler = [
 function OgretmenDashboard() {
   const [ogrenciler] = useState(demoOgrenciler);
   const [seciliSinif, setSeciliSinif] = useState('Tümü');
+  const [seciliEgitimYili, setSeciliEgitimYili] = useState('Tümü'); // YENİ
   const [seciliOgrenci, setSeciliOgrenci] = useState(null);
+
+  // Eğitim yılları listesi
+  const egitimYillari = ['Tümü', '2026-2027', '2025-2026', '2024-2025']; // YENİ
+  
+  // Sınıf filtreleme (sadece 5-A ve 5-B)
+  const siniflar = ['Tümü', '5-A', '5-B'];
+
+  // Filtreleme işlemi
+  const filtrelenmisOgrenciler = ogrenciler.filter(ogrenci => {
+    const sinifUygun = seciliSinif === 'Tümü' || ogrenci.sinif === seciliSinif;
+    const yilUygun = seciliEgitimYili === 'Tümü' || ogrenci.egitimYili === seciliEgitimYili;
+    return sinifUygun && yilUygun;
+  });
 
   // Seçili öğrencinin günlüklerini filtrele
   const ogrenciGunlukleri = seciliOgrenci 
@@ -99,15 +118,10 @@ function OgretmenDashboard() {
     : [];
 
   // İstatistikleri hesapla
-  const toplamOgrenci = ogrenciler.length;
+  const toplamOgrenci = filtrelenmisOgrenciler.length;
   const toplamGunluk = demoGunlukler.length;
-  const aktifOgrenci = ogrenciler.filter(o => o.durum === 'Aktif').length;
-
-  // Sınıf filtreleme
-  const siniflar = ['Tümü', '5-A', '5-B', '6-A', '6-B', '7-A', '7-B', '8-A', '8-B'];
-  const filtrelenmisOgrenciler = seciliSinif === 'Tümü' 
-    ? ogrenciler 
-    : ogrenciler.filter(o => o.sinif === seciliSinif);
+  const aktifOgrenci = filtrelenmisOgrenciler.filter(o => o.durum === 'Aktif').length;
+  const mezunOgrenci = filtrelenmisOgrenciler.filter(o => o.durum === 'Mezun').length;
 
   const handleOgrenciSec = (ogrenci) => {
     setSeciliOgrenci(ogrenci);
@@ -132,7 +146,7 @@ function OgretmenDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-4xl font-bold mb-2">👨‍🏫 Öğretmen Paneli</h1>
-              <p className="text-gray-300">Öğrencilerin Ay Günlüklerini Takip Edin</p>
+              <p className="text-gray-300">5. Sınıf Öğrencilerinin Ay Günlüklerini Takip Edin</p>
             </div>
             <div className="text-sm bg-gradient-to-r from-blue-900/50 to-purple-900/50 px-4 py-2 rounded-xl border border-blue-700/50 backdrop-blur-sm">
               <span className="text-yellow-300">🌙</span> Demo Mod: Gerçek veriler Firebase ile gelecek
@@ -158,54 +172,79 @@ function OgretmenDashboard() {
               <div className="text-2xl">👥</div>
             </div>
             <p className="text-3xl font-bold text-white">{toplamOgrenci}</p>
-            <p className="text-sm text-blue-300 mt-2">Demo veri</p>
+            <p className="text-sm text-blue-300 mt-2">{seciliEgitimYili === 'Tümü' ? 'Tüm yıllar' : seciliEgitimYili}</p>
           </div>
           
           <div className="bg-gradient-to-br from-green-900/40 to-emerald-900/40 backdrop-blur-xl rounded-2xl border border-green-700/30 p-6 hover:scale-105 hover:shadow-2xl hover:shadow-green-500/20 transition-all duration-500">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-gray-300">Toplam Günlük</h3>
-              <div className="text-2xl">📚</div>
-            </div>
-            <p className="text-3xl font-bold text-white">{toplamGunluk}</p>
-            <p className="text-sm text-green-300 mt-2">Ay gözlem kaydı</p>
-          </div>
-          
-          <div className="bg-gradient-to-br from-purple-900/40 to-pink-900/40 backdrop-blur-xl rounded-2xl border border-purple-700/30 p-6 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-500">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-gray-300">Aktif Öğrenci</h3>
               <div className="text-2xl">⭐</div>
             </div>
             <p className="text-3xl font-bold text-white">{aktifOgrenci}</p>
-            <p className="text-sm text-purple-300 mt-2">Son 7 gün</p>
+            <p className="text-sm text-green-300 mt-2">Mevcut öğrenci</p>
+          </div>
+          
+          <div className="bg-gradient-to-br from-purple-900/40 to-pink-900/40 backdrop-blur-xl rounded-2xl border border-purple-700/30 p-6 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-500">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-gray-300">Mezun Öğrenci</h3>
+              <div className="text-2xl">🎓</div>
+            </div>
+            <p className="text-3xl font-bold text-white">{mezunOgrenci}</p>
+            <p className="text-sm text-purple-300 mt-2">Geçmiş yıllar</p>
           </div>
           
           <div className="bg-gradient-to-br from-yellow-900/40 to-orange-900/40 backdrop-blur-xl rounded-2xl border border-yellow-700/30 p-6 hover:scale-105 hover:shadow-2xl hover:shadow-yellow-500/20 transition-all duration-500">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-gray-300">Son Giriş</h3>
-              <div className="text-2xl">🕐</div>
+              <h3 className="font-semibold text-gray-300">Toplam Günlük</h3>
+              <div className="text-2xl">📚</div>
             </div>
-            <p className="text-2xl font-bold text-white">Bugün</p>
-            <p className="text-sm text-yellow-300 mt-2">Demo modunda</p>
+            <p className="text-3xl font-bold text-white">{toplamGunluk}</p>
+            <p className="text-sm text-yellow-300 mt-2">Ay gözlem kaydı</p>
           </div>
         </div>
 
-        {/* SINIF FİLTRELEME - AY TEMALI */}
+        {/* FİLTRELEME ALANI */}
         <div className="bg-gradient-to-br from-[#1a1f3a]/80 to-[#0a0e27]/80 backdrop-blur-xl rounded-2xl border border-white/10 p-6 mb-8">
-          <h2 className="text-2xl font-bold mb-4 text-white">🌌 Sınıf Filtreleme</h2>
-          <div className="flex flex-wrap gap-3">
-            {siniflar.map(sinif => (
-              <button 
-                key={sinif}
-                onClick={() => setSeciliSinif(sinif)}
-                className={`px-5 py-3 rounded-xl transition-all duration-300 transform hover:scale-105 ${
-                  seciliSinif === sinif
-                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/30'
-                    : 'bg-white/10 hover:bg-white/20 text-gray-300 backdrop-blur-sm'
-                }`}
-              >
-                {sinif === 'Tümü' ? '🌕 Tüm Sınıflar' : sinif}
-              </button>
-            ))}
+          <h2 className="text-2xl font-bold mb-6 text-white">🌌 Filtreleme</h2>
+          
+          {/* EĞİTİM YILI FİLTRELEME - YENİ EKLENDİ */}
+          <div className="mb-6">
+            <h3 className="text-lg font-bold mb-3 text-gray-300">📅 Eğitim Yılı</h3>
+            <div className="flex flex-wrap gap-3">
+              {egitimYillari.map(yil => (
+                <button 
+                  key={yil}
+                  onClick={() => setSeciliEgitimYili(yil)}
+                  className={`px-5 py-3 rounded-xl transition-all duration-300 transform hover:scale-105 ${
+                    seciliEgitimYili === yil
+                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/30'
+                      : 'bg-white/10 hover:bg-white/20 text-gray-300 backdrop-blur-sm'
+                  }`}
+                >
+                  {yil === 'Tümü' ? '📅 Tüm Yıllar' : yil}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* SINIF FİLTRELEME */}
+          <div>
+            <h3 className="text-lg font-bold mb-3 text-gray-300">🏫 Sınıf</h3>
+            <div className="flex flex-wrap gap-3">
+              {siniflar.map(sinif => (
+                <button 
+                  key={sinif}
+                  onClick={() => setSeciliSinif(sinif)}
+                  className={`px-5 py-3 rounded-xl transition-all duration-300 transform hover:scale-105 ${
+                    seciliSinif === sinif
+                      ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg shadow-green-500/30'
+                      : 'bg-white/10 hover:bg-white/20 text-gray-300 backdrop-blur-sm'
+                  }`}
+                >
+                  {sinif === 'Tümü' ? '🏫 Tüm Sınıflar' : sinif}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -230,16 +269,16 @@ function OgretmenDashboard() {
                           {seciliOgrenci.ad}
                         </h2>
                         <p className="text-gray-300">
-                          {seciliOgrenci.sinif} • {seciliOgrenci.email} • {seciliOgrenci.gunlukSayisi} günlük
+                          {seciliOgrenci.sinif} • {seciliOgrenci.egitimYili} • No: {seciliOgrenci.ogrenciNo}
                         </p>
                       </div>
                     </div>
                   </div>
                 </div>
-                <span className={`px-4 py-2 rounded-full text-sm font-medium ${
+                <span className={`px-4 py-2 rounded-xl text-sm font-medium ${
                   seciliOgrenci.durum === 'Aktif' 
                     ? 'bg-gradient-to-r from-green-900/50 to-emerald-900/50 text-green-300 border border-green-700/50' 
-                    : 'bg-gradient-to-r from-gray-900/50 to-gray-800/50 text-gray-300 border border-gray-700/50'
+                    : 'bg-gradient-to-r from-yellow-900/50 to-orange-900/50 text-yellow-300 border border-yellow-700/50'
                 }`}>
                   {seciliOgrenci.durum}
                 </span>
@@ -249,7 +288,7 @@ function OgretmenDashboard() {
             {/* GÜNLÜK LİSTESİ */}
             <div className="p-8">
               <h3 className="text-2xl font-bold mb-6 text-white flex items-center gap-3">
-                <span>📖</span> Günlük Kayıtları
+                <span>📖</span> Günlük Kayıtları ({ogrenciGunlukleri.length})
               </h3>
               
               {ogrenciGunlukleri.length > 0 ? (
@@ -295,13 +334,19 @@ function OgretmenDashboard() {
           /* ÖĞRENCİ LİSTESİ - AY TEMALI */
           <div className="bg-gradient-to-br from-[#1a1f3a]/80 to-[#0a0e27]/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden">
             <div className="p-8 border-b border-white/10">
-              <h2 className="text-2xl font-bold text-white mb-2">👥 Öğrenci Listesi</h2>
-              <p className="text-gray-300">
-                {seciliSinif === 'Tümü' 
-                  ? '🌕 Tüm sınıflardaki öğrenciler' 
-                  : `📚 ${seciliSinif} sınıfı öğrencileri`
-                } • Toplam {filtrelenmisOgrenciler.length} öğrenci
-              </p>
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-2xl font-bold text-white mb-2">👥 Öğrenci Listesi</h2>
+                  <p className="text-gray-300">
+                    {seciliEgitimYili === 'Tümü' ? 'Tüm eğitim yılları' : seciliEgitimYili} • 
+                    {seciliSinif === 'Tümü' ? ' Tüm sınıflar' : ` ${seciliSinif}`} • 
+                    Toplam {filtrelenmisOgrenciler.length} öğrenci
+                  </p>
+                </div>
+                <div className="text-sm bg-gray-900/50 px-4 py-2 rounded-xl border border-gray-700">
+                  <span className="text-blue-400">📅</span> Eğitim Yılı: {seciliEgitimYili}
+                </div>
+              </div>
             </div>
             
             <div className="overflow-x-auto">
@@ -310,7 +355,8 @@ function OgretmenDashboard() {
                   <tr>
                     <th className="px-8 py-4 text-left text-sm font-medium text-gray-400 uppercase tracking-wider">Öğrenci</th>
                     <th className="px-8 py-4 text-left text-sm font-medium text-gray-400 uppercase tracking-wider">Sınıf</th>
-                    <th className="px-8 py-4 text-left text-sm font-medium text-gray-400 uppercase tracking-wider">Son Günlük</th>
+                    <th className="px-8 py-4 text-left text-sm font-medium text-gray-400 uppercase tracking-wider">Eğitim Yılı</th>
+                    <th className="px-8 py-4 text-left text-sm font-medium text-gray-400 uppercase tracking-wider">Öğrenci No</th>
                     <th className="px-8 py-4 text-left text-sm font-medium text-gray-400 uppercase tracking-wider">Günlük</th>
                     <th className="px-8 py-4 text-left text-sm font-medium text-gray-400 uppercase tracking-wider">Durum</th>
                     <th className="px-8 py-4 text-left text-sm font-medium text-gray-400 uppercase tracking-wider">İşlem</th>
@@ -324,7 +370,7 @@ function OgretmenDashboard() {
                           <div className="text-3xl mr-4">{ogrenci.avatar}</div>
                           <div>
                             <div className="font-bold text-white text-lg">{ogrenci.ad}</div>
-                            <div className="text-sm text-gray-400">{ogrenci.email}</div>
+                            <div className="text-sm text-gray-400">Son günlük: {ogrenci.sonGunluk}</div>
                           </div>
                         </div>
                       </td>
@@ -336,8 +382,13 @@ function OgretmenDashboard() {
                       <td className="px-8 py-6 whitespace-nowrap text-gray-300">
                         <div className="flex items-center gap-2">
                           <span>📅</span>
-                          <span>{ogrenci.sonGunluk}</span>
+                          <span>{ogrenci.egitimYili}</span>
                         </div>
+                      </td>
+                      <td className="px-8 py-6 whitespace-nowrap">
+                        <span className="px-3 py-1 bg-gray-900/50 text-gray-300 rounded-lg text-sm border border-gray-700">
+                          {ogrenci.ogrenciNo}
+                        </span>
                       </td>
                       <td className="px-8 py-6 whitespace-nowrap">
                         <div className="flex items-center gap-3">
@@ -349,7 +400,7 @@ function OgretmenDashboard() {
                         <span className={`px-4 py-2 rounded-xl text-sm font-medium ${
                           ogrenci.durum === 'Aktif' 
                             ? 'bg-gradient-to-r from-green-900/50 to-emerald-900/50 text-green-300 border border-green-700/50' 
-                            : 'bg-gradient-to-r from-gray-900/50 to-gray-800/50 text-gray-300 border border-gray-700/50'
+                            : 'bg-gradient-to-r from-yellow-900/50 to-orange-900/50 text-yellow-300 border border-yellow-700/50'
                         }`}>
                           {ogrenci.durum}
                         </span>
@@ -371,7 +422,10 @@ function OgretmenDashboard() {
             <div className="p-6 bg-gradient-to-r from-blue-900/20 to-purple-900/20 text-center text-gray-300 text-sm border-t border-white/10">
               <div className="flex items-center justify-center gap-3">
                 <span className="text-yellow-400">⚠️</span>
-                <p>Demo mod: Bu veriler gerçek değildir. Firebase bağlantısı yapıldığında gerçek öğrenci verileri görünecek.</p>
+                <p>
+                  Demo mod: {filtrelenmisOgrenciler.length} demo öğrenci gösteriliyor. 
+                  Firebase bağlantısı yapıldığında gerçek öğrenci verileri görünecek.
+                </p>
               </div>
             </div>
           </div>
@@ -379,7 +433,7 @@ function OgretmenDashboard() {
 
         {/* FOOTER */}
         <div className="mt-8 text-center text-gray-500 text-sm">
-          <p>Ay Günlüğü Öğretmen Paneli • {new Date().getFullYear()} • Sadece yetkili öğretmenler içindir</p>
+          <p>Ay Günlüğü Öğretmen Paneli • {new Date().getFullYear()} • Sadece 5. sınıf öğretmenleri için</p>
         </div>
       </div>
     </div>
