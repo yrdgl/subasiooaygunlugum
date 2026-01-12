@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { 
   FaUser, FaLock, FaIdCard, 
-  FaSchool, FaMoon, FaArrowLeft 
+  FaSchool, FaMoon, FaArrowLeft,
+  FaCalendarAlt // YENİ EKLENDİ
 } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -13,12 +14,14 @@ function OgrenciKayit() {
     sinif: '5',
     sube: 'A',
     ogrenciNo: '',
+    egitimYili: '2026-2027', // YENİ EKLENDİ
     sifre: '',
     sifreTekrar: ''
   });
 
-  const siniflar = ['1', '2', '3', '4', '5', '6', '7', '8'];
-  const subeler = ['A', 'B', 'C', 'D', 'E', 'F'];
+  const siniflar = ['5']; // SADECE 5. SINIF
+  const subeler = ['A', 'B'];
+  const egitimYillari = ['2025-2026', '2026-2027', '2027-2028']; // YENİ EKLENDİ
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -74,6 +77,7 @@ function OgrenciKayit() {
       sinif: '5',
       sube: 'A',
       ogrenciNo: '12345',
+      egitimYili: '2026-2027',
       sifre: '1234',
       sifreTekrar: '1234'
     });
@@ -163,7 +167,7 @@ function OgrenciKayit() {
                     </div>
                   </div>
 
-                  {/* Sınıf/Şube */}
+                  {/* Sınıf/Şube - SADECE 5. SINIF */}
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-gray-300 mb-2">
@@ -176,6 +180,7 @@ function OgrenciKayit() {
                         onChange={handleChange}
                         className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-yellow-500 transition-colors"
                         required
+                        disabled // Sadece 5. sınıf seçilebilir
                       >
                         {siniflar.map(sinif => (
                           <option key={sinif} value={sinif}>
@@ -183,6 +188,9 @@ function OgrenciKayit() {
                           </option>
                         ))}
                       </select>
+                      <p className="text-gray-400 text-sm mt-1">
+                        Bu site sadece 5. sınıflar için
+                      </p>
                     </div>
                     
                     <div>
@@ -206,6 +214,30 @@ function OgrenciKayit() {
                     </div>
                   </div>
 
+                  {/* EĞİTİM YILI - YENİ EKLENDİ */}
+                  <div>
+                    <label className="block text-gray-300 mb-2">
+                      <FaCalendarAlt className="inline mr-2 text-blue-400" />
+                      EĞİTİM YILI *
+                    </label>
+                    <select
+                      name="egitimYili"
+                      value={formData.egitimYili}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 bg-gray-900 border border-blue-700 rounded-lg text-white focus:outline-none focus:border-blue-500 transition-colors"
+                      required
+                    >
+                      {egitimYillari.map(yil => (
+                        <option key={yil} value={yil}>
+                          {yil} Eğitim Yılı
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-gray-400 text-sm mt-1">
+                      Hangi yılın 5. sınıf öğrencisisiniz?
+                    </p>
+                  </div>
+
                   {/* Öğrenci No */}
                   <div>
                     <label className="block text-gray-300 mb-2">
@@ -224,7 +256,7 @@ function OgrenciKayit() {
                       title="Sadece rakam giriniz"
                     />
                     <p className="text-gray-400 text-sm mt-2">
-                      Bu numara ile giriş yapacaksın. Unutma!
+                      <span className="text-yellow-300">⚠️ Önemli:</span> Bu numara ile giriş yapacaksın. Öğretmeninden al!
                     </p>
                   </div>
                   
@@ -304,49 +336,48 @@ function OgrenciKayit() {
 
             {/* Sağ: Bilgilendirme */}
             <div className="space-y-6">
-              {/* Nasıl Çalışır */}
+              {/* Giriş Sistemi Açıklama */}
               <div className="bg-blue-900/30 rounded-xl p-6 border border-blue-700/50">
                 <h3 className="text-xl font-bold text-white mb-3 flex items-center">
-                  <FaMoon className="mr-2" />
-                  Giriş Bilgilerin
+                  🔐 Giriş Sistemi
                 </h3>
                 <ul className="space-y-3">
                   <li className="flex items-start text-gray-300">
                     <span className="text-yellow-400 mr-2 mt-1">🔢</span>
-                    <span><strong>Öğrenci No:</strong> Giriş yapmak için kullanacaksın</span>
+                    <span><strong>Öğrenci No + Şifre:</strong> Giriş yapmak için</span>
                   </li>
                   <li className="flex items-start text-gray-300">
-                    <span className="text-green-400 mr-2 mt-1">🔐</span>
-                    <span><strong>Şifre:</strong> En az 4 karakter</span>
+                    <span className="text-green-400 mr-2 mt-1">📅</span>
+                    <span><strong>Eğitim Yılı:</strong> Her yıl yeni kayıt</span>
                   </li>
                   <li className="flex items-start text-gray-300">
                     <span className="text-purple-400 mr-2 mt-1">👨‍🏫</span>
-                    <span>Öğretmenin sana özel numara verecek</span>
+                    <span><strong>Öğretmeninden al:</strong> Özel öğrenci numarası</span>
                   </li>
                 </ul>
               </div>
 
-              {/* Günlük Rutin */}
+              {/* Eğitim Yılı Açıklama */}
               <div className="bg-purple-900/30 rounded-xl p-6 border border-purple-700/50">
                 <h3 className="text-xl font-bold text-white mb-3">
-                  📅 Günlük Rutin
+                  📅 Eğitim Yılı Sistemi
                 </h3>
                 <div className="space-y-2 text-gray-300">
                   <p className="flex items-center">
-                    <span className="text-blue-400 mr-2">1.</span>
-                    Akşam gökyüzüne bak
+                    <span className="text-blue-400 mr-2">🎯</span>
+                    Sadece 5. sınıflar kullanır
                   </p>
                   <p className="flex items-center">
-                    <span className="text-blue-400 mr-2">2.</span>
-                    Ayın şeklini seç
+                    <span className="text-blue-400 mr-2">🔄</span>
+                    Her yıl yeni öğrenciler kayıt olur
                   </p>
                   <p className="flex items-center">
-                    <span className="text-blue-400 mr-2">3.</span>
-                    Gözlemlerini yaz
+                    <span className="text-blue-400 mr-2">📚</span>
+                    Eski kayıtlar arşivlenir
                   </p>
                   <p className="flex items-center">
-                    <span className="text-blue-400 mr-2">4.</span>
-                    Kaydet ve paylaş!
+                    <span className="text-blue-400 mr-2">👨‍🏫</span>
+                    Öğretmen tüm yılları görür
                   </p>
                 </div>
               </div>
@@ -361,7 +392,7 @@ function OgrenciKayit() {
                 </p>
                 <div className="mt-3 p-3 bg-gray-900/50 rounded-lg">
                   <p className="text-gray-400 text-xs">
-                    Demo kayıt yapınca direkt dashboard'a yönlendirileceksin.
+                    Firebase eklenince: Öğrenci No + Şifre ile giriş
                   </p>
                 </div>
               </div>
@@ -374,10 +405,10 @@ function OgrenciKayit() {
       <footer className="py-8 border-t border-gray-800 mt-12">
         <div className="container mx-auto px-4 text-center">
           <p className="text-gray-400">
-            © {new Date().getFullYear()} Ay Günlüğü - Öğrenci Platformu
+            © {new Date().getFullYear()} Ay Günlüğü - 5. Sınıflar Özel
           </p>
           <p className="text-gray-500 text-sm mt-2">
-            Bu platform öğrencilerin astronomi gözlemlerini kaydetmesi için tasarlanmıştır.
+            Bu platform 5. sınıf öğrencilerinin astronomi gözlemlerini kaydetmesi için tasarlanmıştır.
           </p>
         </div>
       </footer>
