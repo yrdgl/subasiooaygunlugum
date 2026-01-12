@@ -4,12 +4,10 @@ import {
   FaArrowLeft, FaSave 
 } from 'react-icons/fa';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast'; // Bu import'u ekleyin
 
 function YeniGunluk() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { toast } = useToast(); // Toast hook'unu ekleyin
   
   const getUrlDate = () => {
     const searchParams = new URLSearchParams(location.search);
@@ -79,11 +77,7 @@ function YeniGunluk() {
     e.preventDefault();
     
     if (!formData.ayEvresi) {
-      toast({
-        title: "Hata",
-        description: "Lütfen ayın evresini seçin!",
-        variant: "destructive"
-      });
+      alert("❌ Lütfen ayın evresini seçin!");
       return;
     }
     
@@ -100,21 +94,21 @@ function YeniGunluk() {
       tamIcerik: formData.gozlem || '',
       goruntulenme: 0,
       duzenlemeTarihi: null,
-      olusturmaTarihi: new Date().toLocaleString('tr-TR')
+      olusturmaTarihi: new Date().toLocaleString('tr-TR'),
+      // Yıldız alanları eklendi
+      ogretmenYildizi: null,
+      ogretmenYorumu: null,
+      yildizVerilmeTarihi: null
     };
     
     const mevcutGunlukler = JSON.parse(localStorage.getItem('gunlukVerileri') || '[]');
     mevcutGunlukler.unshift(gunlukVerisi);
     localStorage.setItem('gunlukVerileri', JSON.stringify(mevcutGunlukler));
     
-    toast({
-      title: "✅ Günlük Kaydedildi",
-      description: `Tarih: ${formatDisplayDate(formData.tarih)}\nAy Evresi: ${secilenAyEvresi?.ad}`,
-    });
+    alert(`✅ Günlük başarıyla kaydedildi!\nTarih: ${formatDisplayDate(formData.tarih)}\nAy Evresi: ${secilenAyEvresi?.ad}`);
     
-    setTimeout(() => {
-      navigate('/Gunlukler');
-    }, 1500);
+    // DÜZELTME BURADA: Gunlukler'e değil, OgrenciDashboard'a yönlendir
+    navigate('/OgrenciDashboard');
   };
 
   const handleDemoDoldur = () => {
@@ -132,10 +126,7 @@ function YeniGunluk() {
     
     setKarakterSayisi(120);
     
-    toast({
-      title: "Demo Bilgileri Yüklendi",
-      description: "Kaydetmek için 'GÜNLÜĞÜ KAYDET' butonuna tıklayın.",
-    });
+    alert("Demo bilgileri yüklendi. Kaydetmek için 'GÜNLÜĞÜ KAYDET' butonuna tıklayın.");
   };
 
   return (
@@ -269,10 +260,7 @@ function YeniGunluk() {
                         onClick={() => {
                           setFormData(prev => ({ ...prev, gozlem: '' }));
                           setKarakterSayisi(0);
-                          toast({
-                            title: "Temizlendi",
-                            description: "Gözlem notları temizlendi.",
-                          });
+                          alert("Gözlem notları temizlendi.");
                         }}
                         className="text-gray-400 hover:text-white text-sm"
                       >
@@ -306,7 +294,7 @@ function YeniGunluk() {
               </div>
             </div>
 
-            {/* Sağ: Yardım ve Bilgi - SADECE İPUÇLARI BÖLÜMÜ */}
+            {/* Sağ: Yardım ve Bilgi */}
             <div className="space-y-6">
               <div className="bg-blue-900/30 rounded-xl p-6 border border-blue-700/50">
                 <h3 className="text-xl font-bold text-white mb-3">
@@ -330,6 +318,24 @@ function YeniGunluk() {
                     <span className="text-sm">Hangi renkte göründü?</span>
                   </li>
                 </ul>
+              </div>
+              
+              {/* Yıldız Bilgisi */}
+              <div className="bg-yellow-900/30 rounded-xl p-6 border border-yellow-700/50">
+                <h3 className="text-xl font-bold text-white mb-3">
+                  ⭐ Yıldız Kazanma
+                </h3>
+                <p className="text-gray-300 text-sm mb-3">
+                  Günlüğünü kaydettikten sonra öğretmenin günlüğünü okuyacak ve yıldız verecek.
+                </p>
+                <div className="text-center">
+                  <div className="inline-flex items-center space-x-1">
+                    {[...Array(5)].map((_, i) => (
+                      <span key={i} className="text-yellow-400 text-2xl">⭐</span>
+                    ))}
+                  </div>
+                  <p className="text-gray-400 text-xs mt-2">1-5 arası yıldız alabilirsin</p>
+                </div>
               </div>
             </div>
           </div>
