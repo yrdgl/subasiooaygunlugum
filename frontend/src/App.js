@@ -1,7 +1,6 @@
 import React from 'react';
 import './App.css';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { Toaster } from '@/components/ui/toaster';
 
 // Ana sayfaları import et
 import HomePage from './pages/HomePage';
@@ -12,7 +11,7 @@ import OgrenciDashboard from './pages/OgrenciDashboard';
 import YeniGunluk from './pages/YeniGunluk';
 import Gunlukler from './pages/Gunlukler';
 import OgretmenDashboard from './pages/OgretmenDashboard';
-import OgretmenGiris from './pages/OgretmenGiris'; // YENİ EKLENDİ
+import OgretmenGiris from './pages/OgretmenGiris';
 
 // AyTakvimi.js dosyası var mı kontrol et - yoksa placeholder kullan
 let AyTakvimi;
@@ -67,8 +66,8 @@ function App() {
 
   return (
     <div className="App">
-      <Toaster />
-
+      {/* TOASTER KALDIRILDI - Bu hata veriyordu */}
+      
       {process.env.NODE_ENV === 'development' && (
         <div className="fixed top-0 left-0 right-0 bg-yellow-900/80 text-yellow-200 text-center py-1 text-sm z-50 backdrop-blur-sm">
           🚀 Demo Modu - {currentYear} Yılı - v{appVersion} - Tüm tarihler {currentYear} yılına ayarlanmıştır
@@ -82,12 +81,13 @@ function App() {
           <Route path="/candemirin-ay-gunlugu" element={<JournalPage />} />
           <Route path="/OgrenciKayit" element={<OgrenciKayit />} />
           <Route path="/OgrenciGiris" element={<OgrenciGiris />} />
-          <Route path="/OgretmenGiris" element={<OgretmenGiris />} /> {/* YENİ EKLENDİ */}
+          <Route path="/OgretmenGiris" element={<OgretmenGiris />} />
           
           {/* ÖĞRENCİ PANELİ - ÇALIŞAN SAYFALAR */}
           <Route path="/OgrenciDashboard" element={<OgrenciDashboard />} />
           <Route path="/YeniGunluk" element={<YeniGunluk />} />
-          <Route path="/Gunlukler" element={<Gunlukler />} />
+          <Route path="/gunlukler" element={<Gunlukler />} /> {/* KÜÇÜK HARF ile */}
+          <Route path="/Gunlukler" element={<Gunlukler />} /> {/* BÜYÜK HARF ile */}
           <Route path="/AyTakvimi" element={<AyTakvimi />} />
           <Route path="/GunlukDetay/:id" element={<GunlukDetay />} />
           
@@ -145,6 +145,12 @@ function App() {
                       className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors text-gray-300 hover:text-white"
                     >
                       👤 Öğrenci Girişi
+                    </a>
+                    <a 
+                      href="/Gunlukler" 
+                      className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors text-gray-300 hover:text-white"
+                    >
+                      📝 Günlüklerim
                     </a>
                   </div>
                 </div>
