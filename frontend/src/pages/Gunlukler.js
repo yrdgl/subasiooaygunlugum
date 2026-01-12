@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { 
   FaMoon, FaSearch, FaFilter, FaCalendarAlt, 
   FaArrowLeft, FaEdit, FaTrash, FaEye,
-  FaSave, FaTimes, FaCheck
+  FaSave, FaTimes, FaCheck, FaStar, FaTrophy
 } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 
 function Gunlukler() {
+  // Demo veriler - Öğretmen yıldızları dahil
   const initialGunlukler = [
     {
       id: 1,
@@ -16,7 +17,10 @@ function Gunlukler() {
       icerik: "Hilal ayı bugün çok net göründü. İncecik bir hilal şeklindeydi...",
       tamIcerik: "Hilal ayı bugün çok net göründü. İncecik bir hilal şeklindeydi. Hava açıktı ve yıldızlar parlaktı. Gökyüzünde tek başına parlıyordu.",
       goruntulenme: 5,
-      duzenlemeTarihi: null
+      duzenlemeTarihi: null,
+      ogretmenYildizi: 5,
+      ogretmenYorumu: "Çok detaylı ve bilimsel bir gözlem olmuş! 🌟",
+      yildizVerilmeTarihi: "12 Ocak 2026"
     },
     {
       id: 2,
@@ -26,7 +30,49 @@ function Gunlukler() {
       icerik: "Ay bugün tam daire şeklindeydi. Çok parlak ve büyüktü...",
       tamIcerik: "Ay bugün tam daire şeklindeydi. Çok parlak ve büyüktü. Bulutlar arasında kaybolup tekrar görünüyordu. Deniz kenarından izlemek harikaydı.",
       goruntulenme: 3,
-      duzenlemeTarihi: null
+      duzenlemeTarihi: null,
+      ogretmenYildizi: 4,
+      ogretmenYorumu: "Güzel gözlem, ancak biraz daha detay ekleyebilirdin.",
+      yildizVerilmeTarihi: "17 Ocak 2026"
+    },
+    {
+      id: 3,
+      tarih: "8 Ocak 2026",
+      ayEvresi: "🌓",
+      ayEvresiAd: "İlk Dördün",
+      icerik: "Ay yarım daire şeklinde görünüyordu...",
+      tamIcerik: "Ay yarım daire şeklinde görünüyordu. Kenarları keskin ve netti. Teleskopla gözlemlemek çok keyifliydi.",
+      goruntulenme: 2,
+      duzenlemeTarihi: null,
+      ogretmenYildizi: 3,
+      ogretmenYorumu: "Gözlem güzel, devam et!",
+      yildizVerilmeTarihi: "10 Ocak 2026"
+    },
+    {
+      id: 4,
+      tarih: "5 Ocak 2026",
+      ayEvresi: "🌑",
+      ayEvresiAd: "Yeni Ay",
+      icerik: "Ay bugün görünmüyordu ama gökyüzü yıldızlarla doluydu...",
+      tamIcerik: "Ay bugün görünmüyordu ama gökyüzü yıldızlarla doluydu. Samanyolu çok net görünüyordu. Yıldız gözlemi için mükemmel bir geceydi.",
+      goruntulenme: 4,
+      duzenlemeTarihi: null,
+      ogretmenYildizi: 4,
+      ogretmenYorumu: "Yıldız gözlemi fikri çok yaratıcı!",
+      yildizVerilmeTarihi: "7 Ocak 2026"
+    },
+    {
+      id: 5,
+      tarih: "3 Ocak 2026",
+      ayEvresi: "🌘",
+      ayEvresiAd: "Hilal",
+      icerik: "Sabah erken saatlerde ince bir hilal gözlemledim...",
+      tamIcerik: "Sabah erken saatlerde ince bir hilal gözlemledim. Güneş doğmadan hemen önce ufukta parlıyordu. Çok etkileyici bir manzaraydı.",
+      goruntulenme: 1,
+      duzenlemeTarihi: null,
+      ogretmenYildizi: null, // Henüz değerlendirilmedi
+      ogretmenYorumu: null,
+      yildizVerilmeTarihi: null
     }
   ];
 
@@ -36,7 +82,11 @@ function Gunlukler() {
       const parsed = JSON.parse(saved);
       return parsed.map(gunluk => ({
         ...gunluk,
-        ayEvresiAd: gunluk.ayEvresiAd || getAyEvresiAdFromEmoji(gunluk.ayEvresi)
+        ayEvresiAd: gunluk.ayEvresiAd || getAyEvresiAdFromEmoji(gunluk.ayEvresi),
+        // Yıldız verilerini demo'dan al veya localStorage'dan
+        ogretmenYildizi: gunluk.ogretmenYildizi || null,
+        ogretmenYorumu: gunluk.ogretmenYorumu || null,
+        yildizVerilmeTarihi: gunluk.yildizVerilmeTarihi || null
       }));
     }
     return initialGunlukler;
@@ -49,7 +99,8 @@ function Gunlukler() {
   const [filtre, setFiltre] = useState({
     arama: '',
     ayEvresi: 'tum',
-    siralama: 'yeniden-eskive'
+    siralama: 'yeniden-eskive',
+    yildizFiltre: 'tumu' // Yeni: Yıldız filtrelemesi
   });
 
   const [modalDurumu, setModalDurumu] = useState({
@@ -87,29 +138,90 @@ function Gunlukler() {
     { emoji: '🌘', ad: 'Hilal' }
   ];
 
+  // Yıldızları render etme fonksiyonu
+  const renderYildizlar = (sayi) => {
+    if (!sayi) return null;
+    
+    return (
+      <div className="flex items-center">
+        {[...Array(5)].map((_, index) => (
+          <FaStar 
+            key={index}
+            className={`text-sm ${
+              index < sayi 
+                ? 'text-yellow-400 fill-yellow-400' 
+                : 'text-gray-600'
+            }`}
+          />
+        ))}
+        <span className="ml-2 text-yellow-300 font-semibold text-xs">
+          {sayi}/5
+        </span>
+      </div>
+    );
+  };
+
+  // Toplam yıldız puanını hesapla
+  const toplamYildizPuan = gunlukler.reduce((toplam, gunluk) => {
+    return toplam + (gunluk.ogretmenYildizi || 0);
+  }, 0);
+
+  // Yıldızlı günlük sayısını hesapla
+  const yildizliGunlukSayisi = gunlukler.filter(g => g.ogretmenYildizi).length;
+
+  // Ortalama yıldız puanını hesapla
+  const ortalamaYildiz = yildizliGunlukSayisi > 0 
+    ? (toplamYildizPuan / yildizliGunlukSayisi).toFixed(1)
+    : 0;
+
   const filtrelenmisGunlukler = gunlukler.filter(gunluk => {
+    // Arama filtresi
     if (filtre.arama && !gunluk.tamIcerik.toLowerCase().includes(filtre.arama.toLowerCase())) {
       return false;
     }
     
+    // Ay evresi filtresi
     if (filtre.ayEvresi !== 'tum' && !gunluk.ayEvresi.includes(filtre.ayEvresi)) {
       return false;
+    }
+    
+    // Yıldız filtresi
+    if (filtre.yildizFiltre !== 'tumu') {
+      if (filtre.yildizFiltre === 'yildizli' && !gunluk.ogretmenYildizi) {
+        return false;
+      }
+      if (filtre.yildizFiltre === 'yildizsiz' && gunluk.ogretmenYildizi) {
+        return false;
+      }
+      if (filtre.yildizFiltre === '5-yildiz' && gunluk.ogretmenYildizi !== 5) {
+        return false;
+      }
+      if (filtre.yildizFiltre === '4-5-yildiz' && (!gunluk.ogretmenYildizi || gunluk.ogretmenYildizi < 4)) {
+        return false;
+      }
     }
     
     return true;
   }).sort((a, b) => {
     if (filtre.siralama === 'yeniden-eskive') {
       return b.id - a.id;
-    } else {
+    } else if (filtre.siralama === 'eskiden-yeniye') {
       return a.id - b.id;
+    } else if (filtre.siralama === 'yildiza-gore') {
+      // Yıldıza göre sıralama (yüksekten düşüğe)
+      const aYildiz = a.ogretmenYildizi || 0;
+      const bYildiz = b.ogretmenYildizi || 0;
+      return bYildiz - aYildiz;
     }
+    return b.id - a.id;
   });
 
   const handleFiltreTemizle = () => {
     setFiltre({
       arama: '',
       ayEvresi: 'tum',
-      siralama: 'yeniden-eskive'
+      siralama: 'yeniden-eskive',
+      yildizFiltre: 'tumu'
     });
   };
 
@@ -284,7 +396,7 @@ function Gunlukler() {
     </div>
   );
 
-  // DETAY MODAL İÇERİĞİ - YAZI TAŞMA SORUNU DÜZELTİLDİ
+  // DETAY MODAL İÇERİĞİ - YILDIZ BİLGİLERİ EKLENDİ
   const renderDetayModal = () => (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
       <div className="bg-gradient-to-b from-gray-800 to-gray-900 rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-700">
@@ -308,17 +420,54 @@ function Gunlukler() {
             <span>👁️ {modalDurumu.seciliGunluk.goruntulenme} görüntülenme</span>
           </div>
           
+          {/* YILDIZ BİLGİSİ */}
+          {modalDurumu.seciliGunluk.ogretmenYildizi ? (
+            <div className="bg-gradient-to-r from-yellow-900/30 to-yellow-800/30 rounded-xl p-4 border border-yellow-700/50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <FaStar className="text-yellow-400 mr-3 text-xl" />
+                  <h4 className="font-bold text-yellow-300">Öğretmen Değerlendirmesi</h4>
+                </div>
+                <div className="flex items-center bg-gray-900/50 px-3 py-1 rounded-full">
+                  {renderYildizlar(modalDurumu.seciliGunluk.ogretmenYildizi)}
+                </div>
+              </div>
+              
+              {modalDurumu.seciliGunluk.ogretmenYorumu && (
+                <div className="mt-3 p-3 bg-gray-900/50 rounded-lg">
+                  <p className="text-gray-300 italic">
+                    "{modalDurumu.seciliGunluk.ogretmenYorumu}"
+                  </p>
+                  <p className="text-gray-500 text-xs mt-2">
+                    📅 Değerlendirme tarihi: {modalDurumu.seciliGunluk.yildizVerilmeTarihi}
+                  </p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="bg-gray-900/50 rounded-xl p-4 border border-gray-700">
+              <div className="flex items-center">
+                <FaStar className="text-gray-500 mr-3" />
+                <div>
+                  <h4 className="font-bold text-gray-400">Henüz Değerlendirilmedi</h4>
+                  <p className="text-gray-500 text-sm">
+                    Öğretmeniniz bu günlüğü henüz değerlendirmedi.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+          
           <div className="bg-gray-900/50 rounded-xl p-4">
             <h4 className="font-bold mb-2">Gözlem İçeriği</h4>
-            {/* DÜZELTME: Yazı taşmasını engellemek için overflow-wrap ve whitespace */}
             <p className="text-gray-300 whitespace-pre-wrap break-words overflow-wrap-break-word">
               {modalDurumu.seciliGunluk.tamIcerik || 'Gözlem notu eklenmemiş.'}
             </p>
           </div>
           
           {modalDurumu.seciliGunluk.duzenlemeTarihi && (
-            <div className="bg-yellow-900/30 rounded-xl p-4">
-              <h4 className="font-bold mb-2 text-yellow-300">✏️ Son Düzenleme</h4>
+            <div className="bg-blue-900/30 rounded-xl p-4">
+              <h4 className="font-bold mb-2 text-blue-300">✏️ Son Düzenleme</h4>
               <p className="text-gray-300">{modalDurumu.seciliGunluk.duzenlemeTarihi}</p>
             </div>
           )}
@@ -377,10 +526,61 @@ function Gunlukler() {
 
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
+          {/* İSTATİSTİK KARTLARI */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div className="bg-gradient-to-r from-blue-900/30 to-blue-800/30 rounded-xl p-4 border border-blue-700/50">
+              <div className="flex items-center">
+                <div className="w-10 h-10 rounded-full bg-blue-900/50 flex items-center justify-center mr-3">
+                  <FaMoon className="text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-gray-400 text-sm">Toplam Günlük</p>
+                  <p className="text-xl font-bold">{gunlukler.length}</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-gradient-to-r from-yellow-900/30 to-yellow-800/30 rounded-xl p-4 border border-yellow-700/50">
+              <div className="flex items-center">
+                <div className="w-10 h-10 rounded-full bg-yellow-900/50 flex items-center justify-center mr-3">
+                  <FaStar className="text-yellow-400" />
+                </div>
+                <div>
+                  <p className="text-gray-400 text-sm">Yıldızlı Günlük</p>
+                  <p className="text-xl font-bold">{yildizliGunlukSayisi}</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-gradient-to-r from-purple-900/30 to-purple-800/30 rounded-xl p-4 border border-purple-700/50">
+              <div className="flex items-center">
+                <div className="w-10 h-10 rounded-full bg-purple-900/50 flex items-center justify-center mr-3">
+                  <FaTrophy className="text-purple-400" />
+                </div>
+                <div>
+                  <p className="text-gray-400 text-sm">Toplam Puan</p>
+                  <p className="text-xl font-bold">{toplamYildizPuan}</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-gradient-to-r from-green-900/30 to-green-800/30 rounded-xl p-4 border border-green-700/50">
+              <div className="flex items-center">
+                <div className="w-10 h-10 rounded-full bg-green-900/50 flex items-center justify-center mr-3">
+                  <FaStar className="text-green-400" />
+                </div>
+                <div>
+                  <p className="text-gray-400 text-sm">Ortalama Yıldız</p>
+                  <p className="text-xl font-bold">{ortalamaYildiz}/5</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Filtreler */}
           <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 mb-8">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold">Filtreler</h2>
+              <h2 className="text-xl font-bold">Filtreler ve Sıralama</h2>
               <div className="flex gap-3">
                 <button
                   onClick={handleFiltreTemizle}
@@ -391,7 +591,7 @@ function Gunlukler() {
               </div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="space-y-2">
                 <label className="flex items-center text-gray-300">
                   <FaSearch className="mr-2" />
@@ -430,6 +630,24 @@ function Gunlukler() {
               
               <div className="space-y-2">
                 <label className="flex items-center text-gray-300">
+                  <FaStar className="mr-2" />
+                  Yıldız Durumu
+                </label>
+                <select
+                  className="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-yellow-500"
+                  value={filtre.yildizFiltre}
+                  onChange={(e) => setFiltre({...filtre, yildizFiltre: e.target.value})}
+                >
+                  <option value="tumu">Tüm Günlükler</option>
+                  <option value="yildizli">Yıldız Alınanlar</option>
+                  <option value="yildizsiz">Henüz Değerlendirilmeyenler</option>
+                  <option value="5-yildiz">5 Yıldızlılar</option>
+                  <option value="4-5-yildiz">4-5 Yıldızlılar</option>
+                </select>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="flex items-center text-gray-300">
                   <FaFilter className="mr-2" />
                   Sıralama
                 </label>
@@ -440,6 +658,7 @@ function Gunlukler() {
                 >
                   <option value="yeniden-eskive">Yeniden Eskiye</option>
                   <option value="eskiden-yeniye">Eskiden Yeniye</option>
+                  <option value="yildiza-gore">Yüksek Yıldızlılar</option>
                 </select>
               </div>
             </div>
@@ -452,7 +671,7 @@ function Gunlukler() {
                 Kayıtlı Günlükleriniz ({filtrelenmisGunlukler.length})
               </h3>
               <div className="text-sm text-gray-400">
-                <span className="text-green-400">Düzenlenebilir Mod</span>
+                <span className="text-green-400">Öğretmen yıldızları görünüyor</span>
               </div>
             </div>
             
@@ -482,13 +701,35 @@ function Gunlukler() {
                             <span className="text-blue-400">👁️ {gunluk.goruntulenme} görüntülenme</span>
                           </div>
                         </div>
-                        <span className="text-3xl">{gunluk.ayEvresi}</span>
+                        <div className="flex flex-col items-end">
+                          <span className="text-3xl">{gunluk.ayEvresi}</span>
+                          {gunluk.ogretmenYildizi && (
+                            <div className="mt-2 flex items-center">
+                              {renderYildizlar(gunluk.ogretmenYildizi)}
+                            </div>
+                          )}
+                        </div>
                       </div>
                       
                       <div className="mb-4">
                         <p className="text-gray-300 line-clamp-2">
                           {gunluk.icerik}
                         </p>
+                      </div>
+                      
+                      {/* YILDIZ DURUMU */}
+                      <div className="flex items-center">
+                        {gunluk.ogretmenYildizi ? (
+                          <div className="inline-flex items-center bg-yellow-900/30 text-yellow-300 text-xs px-3 py-1 rounded-full">
+                            <FaStar className="mr-1 text-yellow-400" />
+                            {gunluk.ogretmenYildizi} yıldız • {gunluk.yildizVerilmeTarihi}
+                          </div>
+                        ) : (
+                          <div className="inline-flex items-center bg-gray-800 text-gray-400 text-xs px-3 py-1 rounded-full">
+                            <FaStar className="mr-1" />
+                            Henüz değerlendirilmedi
+                          </div>
+                        )}
                       </div>
                     </div>
                     
@@ -534,6 +775,9 @@ function Gunlukler() {
         <div className="container mx-auto px-4 text-center">
           <p className="text-gray-400">
             © 2026 Ay Günlüğü - Günlük Yönetimi
+          </p>
+          <p className="text-gray-500 text-sm mt-2">
+            Toplam {toplamYildizPuan} yıldız puanı • {yildizliGunlukSayisi} değerlendirilmiş günlük
           </p>
         </div>
       </footer>
