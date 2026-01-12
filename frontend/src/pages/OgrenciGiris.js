@@ -1,16 +1,19 @@
 import React, { useState } from 'react';
-import { FaIdCard, FaLock, FaArrowLeft, FaMoon } from 'react-icons/fa';
+import { FaIdCard, FaLock, FaArrowLeft, FaMoon, FaCalendarAlt } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast'; // Bu import'u ekleyin
+import { useToast } from '@/hooks/use-toast';
 
 function OgrenciGiris() {
   const navigate = useNavigate();
-  const { toast } = useToast(); // Toast hook'unu ekleyin
+  const { toast } = useToast();
   
   const [formData, setFormData] = useState({
     ogrenciNo: '',
-    sifre: ''
+    sifre: '',
+    egitimYili: '2026-2027' // YENİ EKLENDİ
   });
+
+  const egitimYillari = ['2025-2026', '2026-2027', '2027-2028']; // YENİ EKLENDİ
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -45,7 +48,7 @@ function OgrenciGiris() {
     if (formData.ogrenciNo === '12345' && formData.sifre === '1234') {
       toast({
         title: "Giriş Başarılı",
-        description: "Öğrenci paneline yönlendiriliyorsunuz...",
+        description: `${formData.egitimYili} eğitim yılına giriş yapılıyor...`,
       });
       
       // 1 saniye sonra otomatik yönlendir
@@ -64,7 +67,8 @@ function OgrenciGiris() {
   const handleDemoGiris = () => {
     setFormData({
       ogrenciNo: '12345',
-      sifre: '1234'
+      sifre: '1234',
+      egitimYili: '2026-2027'
     });
     
     toast({
@@ -113,6 +117,30 @@ function OgrenciGiris() {
           {/* Giriş Formu */}
           <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 border border-gray-700">
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* EĞİTİM YILI - YENİ EKLENDİ */}
+              <div>
+                <label className="block text-gray-300 mb-2">
+                  <FaCalendarAlt className="inline mr-2 text-blue-400" />
+                  EĞİTİM YILI *
+                </label>
+                <select
+                  name="egitimYili"
+                  value={formData.egitimYili}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-gray-900 border border-blue-700 rounded-lg text-white focus:outline-none focus:border-blue-500 transition-colors"
+                  required
+                >
+                  {egitimYillari.map(yil => (
+                    <option key={yil} value={yil}>
+                      {yil} Eğitim Yılı
+                    </option>
+                  ))}
+                </select>
+                <p className="text-gray-400 text-sm mt-1">
+                  Hangi yılın öğrencisisiniz?
+                </p>
+              </div>
+
               {/* Öğrenci Numarası */}
               <div>
                 <label className="block text-gray-300 mb-2">
@@ -221,12 +249,22 @@ function OgrenciGiris() {
             <div className="mt-4 p-3 bg-gray-900/50 rounded-lg">
               <p className="text-gray-400 text-sm">
                 <strong>Demo giriş bilgileri:</strong><br />
+                Eğitim Yılı: <span className="text-blue-300">2026-2027</span><br />
                 Öğrenci No: <span className="text-yellow-300">12345</span><br />
                 Şifre: <span className="text-yellow-300">1234</span>
               </p>
             </div>
           </div>
           
+          {/* Eğitim Yılı Açıklaması - YENİ EKLENDİ */}
+          <div className="mt-6 bg-purple-900/30 rounded-xl p-4 border border-purple-700/50">
+            <h4 className="text-white font-bold mb-2">📅 Eğitim Yılı Nedir?</h4>
+            <p className="text-gray-300 text-sm">
+              <strong>Her yıl yenilenir:</strong> 2026-2027 öğrencileri sadece kendi yılında giriş yapar.<br/>
+              <strong>Arşiv:</strong> Eski yıl öğrencileri sadece öğretmen tarafından görülebilir.
+            </p>
+          </div>
+
           {/* Önemli Not */}
           <div className="mt-6 bg-yellow-900/30 rounded-xl p-4 border border-yellow-700/50">
             <p className="text-gray-300 text-sm">
@@ -241,7 +279,7 @@ function OgrenciGiris() {
       <footer className="py-8 border-t border-gray-800 mt-12">
         <div className="container mx-auto px-4 text-center">
           <p className="text-gray-400">
-            © {new Date().getFullYear()} Ay Günlüğü - Öğrenci Platformu
+            © {new Date().getFullYear()} Ay Günlüğü - 5. Sınıflar Platformu
           </p>
         </div>
       </footer>
