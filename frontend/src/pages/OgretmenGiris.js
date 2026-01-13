@@ -9,9 +9,9 @@ function OgretmenGiris() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // 🔐 Vercel Environment Variables
-    const TEACHER_CODE = import.meta.env.VITE_TEACHER_CODE;
-    const TEACHER_PASS = import.meta.env.VITE_TEACHER_PASS;
+    // 🔐 CRA / CRACO Environment Variables
+    const TEACHER_CODE = process.env.REACT_APP_TEACHER_CODE;
+    const TEACHER_PASS = process.env.REACT_APP_TEACHER_PASS;
 
     if (ogretmenKodu === TEACHER_CODE && sifre === TEACHER_PASS) {
       localStorage.setItem('isTeacher', 'yes');
