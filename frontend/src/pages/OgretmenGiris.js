@@ -40,7 +40,7 @@ function OgretmenGiris() {
               value={ogretmenKodu}
               onChange={(e) => setOgretmenKodu(e.target.value)}
               className="w-full p-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white"
-              placeholder="FEN01"
+              placeholder=""
               required
             />
           </div>
