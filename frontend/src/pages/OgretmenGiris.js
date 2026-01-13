@@ -14,6 +14,8 @@ function OgretmenGiris() {
     const TEACHER_PASS = '1234';
 
     if (ogretmenKodu === TEACHER_CODE && sifre === TEACHER_PASS) {
+      // ✅ Öğretmen oturumu (Dashboard koruması için)
+      localStorage.setItem('isTeacher', 'yes');
       navigate('/OgretmenDashboard');
     } else {
       alert('Öğretmen kodu veya şifre hatalı');
@@ -23,7 +25,6 @@ function OgretmenGiris() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 flex items-center justify-center p-4">
       <div className="bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl p-8 w-full max-w-md border border-white/20">
-
         {/* BAŞLIK */}
         <div className="text-center mb-8">
           <div className="text-5xl mb-4">👨‍🏫</div>
@@ -74,7 +75,6 @@ function OgretmenGiris() {
             ← Ana Sayfa
           </Link>
         </div>
-
       </div>
     </div>
   );
