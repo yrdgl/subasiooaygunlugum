@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 // DEMO ÖĞRENCİ VERİLERİ
 const demoOgrenciler = [
@@ -105,6 +106,20 @@ const demoGunlukler = [
 ];
 
 function OgretmenDashboard() {
+  const navigate = useNavigate();
+
+  // ✅ KİLİT: Öğretmen giriş yapılmadıysa bu sayfaya giremez
+  useEffect(() => {
+    const ok = localStorage.getItem('isTeacher') === 'yes';
+    if (!ok) navigate('/OgretmenGiris');
+  }, [navigate]);
+
+  const handleLogout = (e) => {
+    e.preventDefault();
+    localStorage.removeItem('isTeacher');
+    navigate('/OgretmenGiris');
+  };
+
   const [ogrenciler] = useState(demoOgrenciler);
   const [seciliSinif, setSeciliSinif] = useState('Tümü');
   const [seciliEgitimYili, setSeciliEgitimYili] = useState('2025-2026');
@@ -137,13 +152,15 @@ function OgretmenDashboard() {
         return {
           ...gunluk,
           ogretmenYildizi: yildiz,
-          ogretmenYildizVerildi: true
+          ogretmenYildizVerildi: yildiz > 0
         };
       }
       return gunluk;
     }));
     
-    alert(`⭐ ${yildiz} yıldız verildi! Öğrenci görebilecek.`);
+    if (yildiz > 0) {
+      alert(`⭐ ${yildiz} yıldız verildi! Öğrenci görebilecek.`);
+    }
   };
 
   const handleOgrenciSec = (ogrenci) => {
@@ -178,7 +195,7 @@ function OgretmenDashboard() {
             <a href="/" className="text-gray-400 hover:text-white transition-colors">
               ← Ana Sayfa
             </a>
-            <a href="/OgretmenGiris" className="text-gray-400 hover:text-white transition-colors">
+            <a href="/OgretmenGiris" onClick={handleLogout} className="text-gray-400 hover:text-white transition-colors">
               Çıkış Yap
             </a>
           </div>
@@ -350,7 +367,7 @@ function OgretmenDashboard() {
                       <div className="bg-gray-900/30 rounded-xl p-4 mt-4 border border-gray-800/50">
                         <p className="text-gray-300 leading-relaxed mb-4">{gunluk.icerik}</p>
                         
-                        {/* ✅ YENİ: ÖĞRETMEN YILDIZ VERME BÖLÜMÜ */}
+                        {/* ✅ ÖĞRETMEN YILDIZ VERME BÖLÜMÜ */}
                         <div className="mt-4 pt-4 border-t border-gray-800/50">
                           <div className="flex justify-between items-center">
                             <div>
