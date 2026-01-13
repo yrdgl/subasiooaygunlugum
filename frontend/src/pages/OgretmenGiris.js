@@ -9,12 +9,11 @@ function OgretmenGiris() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // TEK ÖĞRETMEN KODU + ŞİFRE (GEÇİCİ)
-    const TEACHER_CODE = 'FEN01';
-    const TEACHER_PASS = '1234';
+    // 🔐 Vercel Environment Variables
+    const TEACHER_CODE = import.meta.env.VITE_TEACHER_CODE;
+    const TEACHER_PASS = import.meta.env.VITE_TEACHER_PASS;
 
     if (ogretmenKodu === TEACHER_CODE && sifre === TEACHER_PASS) {
-      // ✅ Öğretmen oturumu (Dashboard koruması için)
       localStorage.setItem('isTeacher', 'yes');
       navigate('/OgretmenDashboard');
     } else {
@@ -25,14 +24,13 @@ function OgretmenGiris() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 flex items-center justify-center p-4">
       <div className="bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl p-8 w-full max-w-md border border-white/20">
-        {/* BAŞLIK */}
+
         <div className="text-center mb-8">
           <div className="text-5xl mb-4">👨‍🏫</div>
           <h1 className="text-3xl font-bold text-white mb-2">Öğretmen Girişi</h1>
           <p className="text-gray-300">Ay Günlüğü Öğretmen Paneli</p>
         </div>
 
-        {/* FORM */}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-gray-300 mb-2">Öğretmen Kodu</label>
@@ -41,7 +39,6 @@ function OgretmenGiris() {
               value={ogretmenKodu}
               onChange={(e) => setOgretmenKodu(e.target.value)}
               className="w-full p-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white"
-              placeholder=""
               required
             />
           </div>
@@ -53,7 +50,6 @@ function OgretmenGiris() {
               value={sifre}
               onChange={(e) => setSifre(e.target.value)}
               className="w-full p-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white"
-              placeholder="••••••••"
               required
             />
           </div>
@@ -75,6 +71,7 @@ function OgretmenGiris() {
             ← Ana Sayfa
           </Link>
         </div>
+
       </div>
     </div>
   );
