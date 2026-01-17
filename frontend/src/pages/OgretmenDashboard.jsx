@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// ✅ Firestore
+// ✅ Firebase imports
 import {
   collection,
   getDocs,
@@ -10,25 +10,60 @@ import {
   doc,
   updateDoc,
   serverTimestamp,
+  getDoc
 } from "firebase/firestore";
-import { db } from "../lib/firebase";
+import { auth, db } from "../lib/firebase";
+import { signOut } from "firebase/auth";
 
 function OgretmenDashboard() {
   const navigate = useNavigate();
 
-  // ✅ KİLİT: Öğretmen giriş yapılmadıysa bu sayfaya giremez
+  // ✅ KİLİT: Öğretmen giriş kontrolü
   useEffect(() => {
-    const ok = localStorage.getItem('isTeacher') === 'yes';
-    if (!ok) navigate('/OgretmenGiris');
+    const checkTeacherAuth = async () => {
+      try {
+        // Firebase auth durumunu kontrol et
+        const user = auth.currentUser;
+        const teacherEmail = localStorage.getItem("teacherEmail");
+        
+        if (!user || !teacherEmail || user.email !== teacherEmail) {
+          navigate('/OgretmenGiris');
+          return;
+        }
+        
+        // Firestore'dan öğretmen kontrolü
+        const teacherDoc = await getDoc(doc(db, "teachers", user.email));
+        
+        if (!teacherDoc.exists() || teacherDoc.data().role !== "teacher") {
+          await auth.signOut();
+          localStorage.clear();
+          navigate('/OgretmenGiris');
+          return;
+        }
+        
+      } catch (err) {
+        console.error("Auth kontrol hatası:", err);
+        navigate('/OgretmenGiris');
+      }
+    };
+    
+    checkTeacherAuth();
   }, [navigate]);
 
-  const handleLogout = (e) => {
+  const handleLogout = async (e) => {
     e.preventDefault();
+    try {
+      await signOut(auth);
+    } catch (err) {
+      console.error("Çıkış hatası:", err);
+    }
     localStorage.removeItem('isTeacher');
+    localStorage.removeItem('teacherEmail');
+    localStorage.removeItem('teacherLoginTime');
     navigate('/OgretmenGiris');
   };
 
-  // ✅ Firestore’dan dolacak
+  // ✅ Firestore'dan dolacak
   const [ogrenciler, setOgrenciler] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -124,7 +159,7 @@ function OgretmenDashboard() {
     });
   }, [ogrenciler, seciliSinif, seciliEgitimYili]);
 
-  // ✅ Seçili öğrenci değişince: günlükleri Firestore’dan çek
+  // ✅ Seçili öğrenci değişince: günlükleri Firestore'dan çek
   useEffect(() => {
     const loadJournalsOfStudent = async () => {
       if (!seciliOgrenci?.id) {
@@ -201,7 +236,7 @@ function OgretmenDashboard() {
   const aktifOgrenci = filtrelenmisOgrenciler.filter(o => o.durum === 'Aktif').length;
   const gelecekOgrenci = filtrelenmisOgrenciler.filter(o => o.durum === 'Gelecek').length;
 
-  // ✅ Öğretmen yıldızı Firestore’a yaz (öğrenci görecek)
+  // ✅ Öğretmen yıldızı Firestore'a yaz (öğrenci görecek)
   const handleYildizVer = async (gunlukId, yeniYildiz) => {
     if (!seciliOgrenci?.id) return;
 
@@ -313,17 +348,17 @@ function OgretmenDashboard() {
   const t = toastTheme[toast.type] || toastTheme.info;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0a0e27] via-[#1a1f3a] to-[#0a0e27] text-white p-4">
+    <div className="min-h-screen bg-gradient-to-b from-[#0a0e27] via-[#1a1f3a] to-[#0a0e27] text-white p-3 sm:p-4">
       {/* ✅ TOAST */}
       {toast.open && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-xl">
-          <div className={`bg-gray-900/90 backdrop-blur-md border ${t.ring} rounded-2xl shadow-xl px-5 py-4`}>
-            <div className="flex items-start gap-3">
-              <div className={`w-3 h-3 rounded-full mt-2 ${t.badge}`} />
+          <div className={`bg-gray-900/90 backdrop-blur-md border ${t.ring} rounded-2xl shadow-xl px-4 sm:px-5 py-3 sm:py-4`}>
+            <div className="flex items-start gap-2 sm:gap-3">
+              <div className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full mt-1 sm:mt-2 ${t.badge}`} />
               <div className="flex-1">
-                <div className={`font-bold ${t.title}`}>{toast.title}</div>
+                <div className={`font-bold text-sm sm:text-base ${t.title}`}>{toast.title}</div>
                 {toast.message && (
-                  <div className={`text-sm mt-1 ${t.msg}`}>{toast.message}</div>
+                  <div className={`text-xs sm:text-sm mt-1 ${t.msg}`}>{toast.message}</div>
                 )}
               </div>
             </div>
@@ -339,64 +374,70 @@ function OgretmenDashboard() {
       />
 
       <div className="relative z-10 max-w-7xl mx-auto">
-        <header className="mb-8 pt-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold mb-2">👨‍🏫 Öğretmen Paneli</h1>
-              <p className="text-gray-300">5. Sınıf Öğrencilerinin Ay Günlüklerini Takip Edin</p>
+        {/* HEADER - MOBİL UYUMLU */}
+        <header className="mb-6 sm:mb-8 pt-4 sm:pt-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="order-2 sm:order-1">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1 sm:mb-2">👨‍🏫 Öğretmen Paneli</h1>
+              <p className="text-gray-300 text-sm sm:text-base">5. Sınıf Öğrencilerinin Ay Günlüklerini Takip Edin</p>
             </div>
-            <div className="text-sm bg-gradient-to-r from-green-900/50 to-emerald-900/50 px-4 py-2 rounded-xl border border-green-700/50 backdrop-blur-sm">
+            <div className="order-1 sm:order-2 text-xs sm:text-sm bg-gradient-to-r from-green-900/50 to-emerald-900/50 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl border border-green-700/50 backdrop-blur-sm w-full sm:w-auto">
               <span className="text-yellow-300">🎯</span> Mevcut 5. Sınıf: {currentEgitimYili}
             </div>
           </div>
 
-          <div className="mt-4 flex gap-4">
-            <a href="/" className="text-gray-400 hover:text-white transition-colors">
+          <div className="mt-4 flex flex-wrap gap-2 sm:gap-4">
+            <a href="/" className="text-gray-400 hover:text-white transition-colors text-sm sm:text-base">
               ← Ana Sayfa
             </a>
-            <a href="/OgretmenGiris" onClick={handleLogout} className="text-gray-400 hover:text-white transition-colors">
+            <button
+              onClick={handleLogout}
+              className="text-gray-400 hover:text-white transition-colors text-sm sm:text-base"
+            >
               Çıkış Yap
-            </a>
+            </button>
           </div>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-gradient-to-br from-blue-900/40 to-indigo-900/40 backdrop-blur-xl rounded-2xl border border-blue-700/30 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-gray-300">Filtrelenmiş Öğrenci</h3>
-              <div className="text-2xl">👥</div>
+        {/* STATS CARDS - MOBİLDE DİKEY */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          <div className="bg-gradient-to-br from-blue-900/40 to-indigo-900/40 backdrop-blur-xl rounded-2xl border border-blue-700/30 p-4 sm:p-6">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <h3 className="font-semibold text-gray-300 text-sm sm:text-base">Filtrelenmiş Öğrenci</h3>
+              <div className="text-xl sm:text-2xl">👥</div>
             </div>
-            <p className="text-3xl font-bold text-white">{loading ? "…" : toplamOgrenci}</p>
-            <p className="text-sm text-blue-300 mt-2">
+            <p className="text-2xl sm:text-3xl font-bold text-white">{loading ? "…" : toplamOgrenci}</p>
+            <p className="text-xs sm:text-sm text-blue-300 mt-1 sm:mt-2">
               {seciliEgitimYili === 'Tümü' ? 'Tüm yıllar' : seciliEgitimYili}
             </p>
           </div>
 
-          <div className="bg-gradient-to-br from-green-900/40 to-emerald-900/40 backdrop-blur-xl rounded-2xl border border-green-700/30 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-gray-300">Aktif Öğrenci</h3>
-              <div className="text-2xl">⭐</div>
+          <div className="bg-gradient-to-br from-green-900/40 to-emerald-900/40 backdrop-blur-xl rounded-2xl border border-green-700/30 p-4 sm:p-6">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <h3 className="font-semibold text-gray-300 text-sm sm:text-base">Aktif Öğrenci</h3>
+              <div className="text-xl sm:text-2xl">⭐</div>
             </div>
-            <p className="text-3xl font-bold text-white">{loading ? "…" : aktifOgrenci}</p>
-            <p className="text-sm text-green-300 mt-2">5. sınıf ({currentEgitimYili})</p>
+            <p className="text-2xl sm:text-3xl font-bold text-white">{loading ? "…" : aktifOgrenci}</p>
+            <p className="text-xs sm:text-sm text-green-300 mt-1 sm:mt-2">5. sınıf ({currentEgitimYili})</p>
           </div>
 
-          <div className="bg-gradient-to-br from-purple-900/40 to-pink-900/40 backdrop-blur-xl rounded-2xl border border-purple-700/30 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-gray-300">Gelecek Öğrenci</h3>
-              <div className="text-2xl">🔮</div>
+          <div className="bg-gradient-to-br from-purple-900/40 to-pink-900/40 backdrop-blur-xl rounded-2xl border border-purple-700/30 p-4 sm:p-6">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <h3 className="font-semibold text-gray-300 text-sm sm:text-base">Gelecek Öğrenci</h3>
+              <div className="text-xl sm:text-2xl">🔮</div>
             </div>
-            <p className="text-3xl font-bold text-white">{loading ? "…" : gelecekOgrenci}</p>
-            <p className="text-sm text-purple-300 mt-2">2026-2027 (5. sınıf olacak)</p>
+            <p className="text-2xl sm:text-3xl font-bold text-white">{loading ? "…" : gelecekOgrenci}</p>
+            <p className="text-xs sm:text-sm text-purple-300 mt-1 sm:mt-2">2026-2027 (5. sınıf olacak)</p>
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-[#1a1f3a]/80 to-[#0a0e27]/80 backdrop-blur-xl rounded-2xl border border-white/10 p-6 mb-8">
-          <h2 className="text-2xl font-bold mb-6 text-white">🌌 Filtreleme Seçenekleri</h2>
+        {/* FİLTRELEME BÖLÜMÜ */}
+        <div className="bg-gradient-to-br from-[#1a1f3a]/80 to-[#0a0e27]/80 backdrop-blur-xl rounded-2xl border border-white/10 p-4 sm:p-6 mb-6 sm:mb-8">
+          <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-white">🌌 Filtreleme Seçenekleri</h2>
 
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
             <div>
-              <h3 className="text-lg font-bold mb-3 text-gray-300 flex items-center gap-2">
+              <h3 className="text-base sm:text-lg font-bold mb-2 sm:mb-3 text-gray-300 flex items-center gap-2">
                 <span>📅</span> Eğitim Yılı
               </h3>
               <div className="flex flex-wrap gap-2">
@@ -404,7 +445,7 @@ function OgretmenDashboard() {
                   <button
                     key={yil}
                     onClick={() => setSeciliEgitimYili(yil)}
-                    className={`px-4 py-2 rounded-lg transition-all ${
+                    className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg transition-all text-xs sm:text-sm ${
                       seciliEgitimYili === yil
                         ? yil === currentEgitimYili
                           ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-md'
@@ -415,19 +456,19 @@ function OgretmenDashboard() {
                     }`}
                   >
                     {yil === 'Tümü' ? 'Tüm Yıllar' : yil}
-                    {yil === currentEgitimYili && ' (Mevcut)'}
-                    {yil === '2026-2027' && ' (Gelecek)'}
+                    {yil === currentEgitimYili && ' (M)'}
+                    {yil === '2026-2027' && ' (G)'}
                   </button>
                 ))}
               </div>
-              <div className="mt-3 text-sm">
-                <p className="text-green-400 mb-1">✅ <strong>2025-2026:</strong> Mevcut 5. sınıf öğrencileri</p>
-                <p className="text-purple-400">🔮 <strong>2026-2027:</strong> Gelecek yıl 5. sınıf olacak</p>
+              <div className="mt-2 sm:mt-3 text-xs sm:text-sm">
+                <p className="text-green-400 mb-1">✅ <strong>2025-2026:</strong> Mevcut 5. sınıf</p>
+                <p className="text-purple-400">🔮 <strong>2026-2027:</strong> Gelecek yıl</p>
               </div>
             </div>
 
             <div>
-              <h3 className="text-lg font-bold mb-3 text-gray-300 flex items-center gap-2">
+              <h3 className="text-base sm:text-lg font-bold mb-2 sm:mb-3 text-gray-300 flex items-center gap-2">
                 <span>🏫</span> Sınıf
               </h3>
               <div className="flex flex-wrap gap-2">
@@ -435,7 +476,7 @@ function OgretmenDashboard() {
                   <button
                     key={sinif}
                     onClick={() => setSeciliSinif(sinif)}
-                    className={`px-4 py-2 rounded-lg transition-all ${
+                    className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg transition-all text-xs sm:text-sm ${
                       seciliSinif === sinif
                         ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-md'
                         : 'bg-white/10 hover:bg-white/20 text-gray-300'
@@ -445,123 +486,128 @@ function OgretmenDashboard() {
                   </button>
                 ))}
               </div>
-              <p className="text-gray-400 text-sm mt-2">
+              <p className="text-gray-400 text-xs sm:text-sm mt-2">
                 Sadece 5. sınıf öğrencileri (5-A ve 5-B)
               </p>
             </div>
           </div>
         </div>
 
+        {/* ÖĞRENCİ DETAY BÖLÜMÜ */}
         {seciliOgrenci ? (
-          <div className="bg-gradient-to-br from-[#1a1f3a]/80 to-[#0a0e27]/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden mb-8">
-            <div className="p-8 border-b border-white/10 bg-gradient-to-r from-blue-900/30 to-purple-900/30">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-6">
+          <div className="bg-gradient-to-br from-[#1a1f3a]/80 to-[#0a0e27]/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden mb-6 sm:mb-8">
+            {/* ÖĞRENCİ HEADER - MOBİL UYUMLU */}
+            <div className="p-4 sm:p-6 md:p-8 border-b border-white/10 bg-gradient-to-r from-blue-900/30 to-purple-900/30">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3 sm:gap-4">
                   <button
                     onClick={handleGeriDon}
-                    className="text-gray-400 hover:text-white transition-colors text-lg"
+                    className="text-gray-400 hover:text-white transition-colors text-base sm:text-lg"
                   >
-                    ← Geri Dön
+                    ← Geri
                   </button>
-                  <div>
-                    <div className="flex items-center gap-4 mb-2">
-                      <div className="text-5xl">{seciliOgrenci.avatar || "👤"}</div>
-                      <div>
-                        <h2 className="text-3xl font-bold text-white">
-                          {seciliOgrenci.ad}
-                        </h2>
-                        <p className="text-gray-300">
-                          {seciliOgrenci.sinif} • {seciliOgrenci.egitimYili} • No: {seciliOgrenci.ogrenciNo}
-                        </p>
-                      </div>
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="text-3xl sm:text-4xl md:text-5xl">{seciliOgrenci.avatar || "👤"}</div>
+                    <div>
+                      <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-1">
+                        {seciliOgrenci.ad}
+                      </h2>
+                      <p className="text-gray-300 text-xs sm:text-sm">
+                        {seciliOgrenci.sinif} • {seciliOgrenci.egitimYili} • No: {seciliOgrenci.ogrenciNo}
+                      </p>
                     </div>
                   </div>
                 </div>
-                <span className={`px-4 py-2 rounded-xl text-sm font-medium ${
+                <span className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-sm font-medium self-start sm:self-center ${
                   seciliOgrenci.durum === 'Aktif'
                     ? 'bg-gradient-to-r from-green-900/50 to-emerald-900/50 text-green-300 border border-green-700/50'
                     : 'bg-gradient-to-r from-purple-900/50 to-pink-900/50 text-purple-300 border border-purple-700/50'
                 }`}>
                   {seciliOgrenci.durum}
-                  {seciliOgrenci.durum === 'Gelecek' && ' (5. sınıf olacak)'}
+                  {seciliOgrenci.durum === 'Gelecek' && ' (5. olacak)'}
                 </span>
               </div>
             </div>
 
-            <div className="p-8">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-2xl font-bold text-white flex items-center gap-3">
+            {/* GÜNLÜK LİSTESİ */}
+            <div className="p-4 sm:p-6 md:p-8">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-3">
+                <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white flex items-center gap-2 sm:gap-3">
                   <span>📖</span> Günlük Kayıtları ({ogrenciGunlukleri.length})
                 </h3>
-                <div className="text-sm bg-yellow-900/30 px-4 py-2 rounded-xl border border-yellow-700/50">
+                <div className="text-xs sm:text-sm bg-yellow-900/30 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl border border-yellow-700/50 w-fit">
                   <span className="text-yellow-300">⭐</span> Öğrenciler yıldızlarını görecek
                 </div>
               </div>
 
               {ogrenciGunlukleri.length > 0 ? (
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   {ogrenciGunlukleri.map(gunluk => (
-                    <div key={gunluk.id} className="bg-gradient-to-br from-gray-900/50 to-gray-800/50 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-                      <div className="flex justify-between items-start mb-4">
-                        <div>
-                          <h4 className="font-bold text-white text-xl mb-2">{gunluk.baslik}</h4>
-                          <div className="flex items-center gap-4 text-gray-300">
-                            <span className="flex items-center gap-2">
-                              <span className="text-lg">📅</span> {gunluk.tarih}
+                    <div key={gunluk.id} className="bg-gradient-to-br from-gray-900/50 to-gray-800/50 backdrop-blur-xl rounded-2xl border border-white/10 p-4 sm:p-6">
+                      {/* GÜNLÜK BAŞLIK - MOBİLDE DİKEY */}
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 sm:mb-4 gap-3">
+                        <div className="flex-1">
+                          <h4 className="font-bold text-white text-base sm:text-lg md:text-xl mb-1 sm:mb-2 break-words">{gunluk.baslik}</h4>
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-gray-300 text-xs sm:text-sm">
+                            <span className="flex items-center gap-1">
+                              <span>📅</span> {gunluk.tarih}
                             </span>
-                            <span className="flex items-center gap-2">
+                            <span className="flex items-center gap-1">
                               {gunluk.ayFazi}
                             </span>
                             {gunluk.ogretmenYildizi > 0 && (
-                              <span className="inline-flex items-center px-2 py-1 rounded-full bg-yellow-900/30 text-yellow-300 text-xs">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-yellow-900/30 text-yellow-300 text-xs mt-1 sm:mt-0">
                                 🔒 Kilitli ({gunluk.ogretmenYildizi} yıldız)
                               </span>
                             )}
                           </div>
                         </div>
-                        <div className="flex flex-col items-end">
-                          <div className="text-yellow-400 text-2xl">
+                        <div className="flex flex-col items-start sm:items-end">
+                          <div className="text-yellow-400 text-lg sm:text-xl md:text-2xl">
                             {'★'.repeat(Math.floor(Number(gunluk.yildiz || 0)))}
                             {'☆'.repeat(5 - Math.floor(Number(gunluk.yildiz || 0)))}
                           </div>
-                          <span className="text-sm text-gray-400 mt-1">Öğretmen: {gunluk.yildiz} / 5</span>
+                          <span className="text-xs sm:text-sm text-gray-400 mt-1">Öğretmen: {gunluk.yildiz} / 5</span>
                         </div>
                       </div>
 
-                      <div className="bg-gray-900/30 rounded-xl p-4 mt-4 border border-gray-800/50">
-                        <p className="text-gray-300 leading-relaxed mb-4 whitespace-pre-wrap">{gunluk.icerik}</p>
+                      {/* GÜNLÜK İÇERİK */}
+                      <div className="bg-gray-900/30 rounded-xl p-3 sm:p-4 mt-3 sm:mt-4 border border-gray-800/50">
+                        <p className="text-gray-300 leading-relaxed mb-3 sm:mb-4 whitespace-pre-wrap text-sm sm:text-base max-h-40 overflow-y-auto">{gunluk.icerik}</p>
 
-                        <div className="mt-4 pt-4 border-t border-gray-800/50">
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <h5 className="font-bold text-white mb-2 flex items-center gap-2">
+                        {/* YILDIZ VERME BÖLÜMÜ - MOBİLDE DİKEY */}
+                        <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-800/50">
+                          <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
+                            <div className="flex-1">
+                              <h5 className="font-bold text-white mb-2 flex items-center gap-2 text-sm sm:text-base">
                                 <span className="text-yellow-400">👨‍🏫</span>
                                 Öğretmen Değerlendirmesi
                               </h5>
                               {gunluk.ogretmenYildizVerildi ? (
-                                <div className="flex items-center gap-3">
-                                  <div className="text-yellow-400 text-2xl">
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                                  <div className="text-yellow-400 text-xl sm:text-2xl">
                                     {'★'.repeat(gunluk.ogretmenYildizi)}
                                     {'☆'.repeat(5 - gunluk.ogretmenYildizi)}
                                   </div>
-                                  <span className="text-white font-bold">{gunluk.ogretmenYildizi} / 5</span>
-                                  <div className="text-sm text-gray-400 ml-4">
+                                  <span className="text-white font-bold text-sm sm:text-base">{gunluk.ogretmenYildizi} / 5</span>
+                                  <div className="text-xs sm:text-sm text-gray-400">
                                     {gunluk.ogretmenYildizi === 5 ? "📈 Maksimum" : "📈 Artırılabilir"}
                                   </div>
                                 </div>
                               ) : (
-                                <p className="text-gray-400 text-sm">Henüz değerlendirilmemiş</p>
+                                <p className="text-gray-400 text-xs sm:text-sm">Henüz değerlendirilmemiş</p>
                               )}
                             </div>
 
-                            <div className="flex flex-col items-end">
-                              <p className="text-gray-400 text-sm mb-2">Yıldız Ver:</p>
-                              <div className="flex gap-1">
+                            {/* YILDIZ BUTONLARI - MOBİL İÇİN ÖZEL */}
+                            <div className="lg:text-right">
+                              <p className="text-gray-400 text-xs sm:text-sm mb-2">Yıldız Ver:</p>
+                              <div className="flex flex-wrap gap-1 justify-start lg:justify-end">
                                 {[1, 2, 3, 4, 5].map(yildiz => (
                                   <button
                                     key={yildiz}
                                     onClick={() => handleYildizVer(gunluk.id, yildiz)}
-                                    className={`px-3 py-1 rounded-lg transition-all ${
+                                    className={`px-2 py-1 sm:px-3 sm:py-1 rounded-lg transition-all text-xs sm:text-sm min-w-[44px] min-h-[44px] ${
                                       gunluk.ogretmenYildizi === yildiz
                                         ? 'bg-yellow-600 text-white'
                                         : gunluk.ogretmenYildizi > 0 && yildiz < gunluk.ogretmenYildizi
@@ -574,19 +620,24 @@ function OgretmenDashboard() {
                                       : "Yıldız ver"
                                     }
                                   >
-                                    {yildiz} ★
-                                    {gunluk.ogretmenYildizi > 0 && yildiz < gunluk.ogretmenYildizi && " ⬇️"}
-                                    {gunluk.ogretmenYildizi > 0 && yildiz > gunluk.ogretmenYildizi && " ⬆️"}
+                                    <span className="hidden sm:inline">{yildiz} ★</span>
+                                    <span className="sm:hidden">{yildiz}★</span>
+                                    {gunluk.ogretmenYildizi > 0 && yildiz < gunluk.ogretmenYildizi && (
+                                      <span className="hidden sm:inline"> ⬇️</span>
+                                    )}
+                                    {gunluk.ogretmenYildizi > 0 && yildiz > gunluk.ogretmenYildizi && (
+                                      <span className="hidden sm:inline"> ⬆️</span>
+                                    )}
                                   </button>
                                 ))}
                               </div>
-                              <div className="text-xs text-gray-500 mt-1 text-right">
+                              <div className="text-xs text-gray-500 mt-1 text-left lg:text-right">
                                 {gunluk.ogretmenYildizi > 0 ? "📈 Sadece artırılabilir" : "✅ İlk yıldız"}
                               </div>
                             </div>
                           </div>
 
-                          <div className="mt-3 text-xs text-gray-500">
+                          <div className="mt-2 sm:mt-3 text-xs text-gray-500">
                             ⓘ Öğrenci bu yıldızı günlüklerinde görecek • Yıldız verilince günlük kilitlenir
                           </div>
                         </div>
@@ -595,127 +646,187 @@ function OgretmenDashboard() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-12">
-                  <div className="text-6xl mb-4 opacity-50">📭</div>
-                  <p className="text-xl text-gray-400">Bu öğrencinin henüz günlüğü yok.</p>
+                <div className="text-center py-8 sm:py-12">
+                  <div className="text-4xl sm:text-6xl mb-3 sm:mb-4 opacity-50">📭</div>
+                  <p className="text-base sm:text-xl text-gray-400">Bu öğrencinin henüz günlüğü yok.</p>
                 </div>
               )}
             </div>
           </div>
         ) : (
+          /* ÖĞRENCİ LİSTESİ TABLOSU */
           <div className="bg-gradient-to-br from-[#1a1f3a]/80 to-[#0a0e27]/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden">
-            <div className="p-8 border-b border-white/10">
-              <div className="flex justify-between items-center">
+            {/* TABLO HEADER */}
+            <div className="p-4 sm:p-6 md:p-8 border-b border-white/10">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                 <div>
-                  <h2 className="text-2xl font-bold text-white mb-2">👥 5. Sınıf Öğrenci Listesi</h2>
-                  <p className="text-gray-300">
+                  <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-1 sm:mb-2">👥 5. Sınıf Öğrenci Listesi</h2>
+                  <p className="text-gray-300 text-xs sm:text-sm">
                     {seciliEgitimYili === 'Tümü' ? 'Tüm eğitim yılları' : seciliEgitimYili} •
                     {seciliSinif === 'Tümü' ? ' 5-A ve 5-B sınıfları' : ` ${seciliSinif}`} •
                     Toplam {loading ? "…" : filtrelenmisOgrenciler.length} öğrenci
                   </p>
                 </div>
-                <div className="text-sm bg-gray-900/50 px-4 py-2 rounded-xl border border-gray-700">
+                <div className="text-xs sm:text-sm bg-gray-900/50 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl border border-gray-700 w-fit">
                   <span className="text-green-400">✅ Aktif</span> •
-                  <span className="text-purple-400 mx-2">🔮 Gelecek</span>
+                  <span className="text-purple-400 mx-1 sm:mx-2">🔮 Gelecek</span>
                 </div>
               </div>
             </div>
 
             {loading ? (
-              <div className="text-center py-12">
+              <div className="text-center py-8 sm:py-12">
                 <p className="text-gray-300">Öğrenciler yükleniyor...</p>
               </div>
             ) : filtrelenmisOgrenciler.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-white/5">
-                    <tr>
-                      <th className="px-8 py-4 text-left text-sm font-medium text-gray-400 uppercase">Öğrenci</th>
-                      <th className="px-8 py-4 text-left text-sm font-medium text-gray-400 uppercase">Sınıf</th>
-                      <th className="px-8 py-4 text-left text-sm font-medium text-gray-400 uppercase">Eğitim Yılı</th>
-                      <th className="px-8 py-4 text-left text-sm font-medium text-gray-400 uppercase">Durum</th>
-                      <th className="px-8 py-4 text-left text-sm font-medium text-gray-400 uppercase">Günlük</th>
-                      <th className="px-8 py-4 text-left text-sm font-medium text-gray-400 uppercase">İşlem</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/10">
-                    {filtrelenmisOgrenciler.map(ogrenci => (
-                      <tr key={ogrenci.id} className="hover:bg-white/5 transition-colors">
-                        <td className="px-8 py-6">
-                          <div className="flex items-center">
-                            <div className="text-3xl mr-4">{ogrenci.avatar || "👤"}</div>
-                            <div>
-                              <div className="font-bold text-white text-lg">{ogrenci.ad}</div>
-                              <div className="text-sm text-gray-400">
-                                No: {ogrenci.ogrenciNo}
-                              </div>
-                            </div>
+              <>
+                {/* MOBİL GÖRÜNÜM - KARTLAR */}
+                <div className="block sm:hidden p-4 space-y-4">
+                  {filtrelenmisOgrenciler.map(ogrenci => (
+                    <div key={ogrenci.id} className="bg-gradient-to-br from-gray-900/50 to-gray-800/50 backdrop-blur-xl rounded-2xl border border-white/10 p-4">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="text-2xl">{ogrenci.avatar || "👤"}</div>
+                        <div className="flex-1">
+                          <div className="font-bold text-white">{ogrenci.ad}</div>
+                          <div className="text-xs text-gray-400">
+                            No: {ogrenci.ogrenciNo} • {ogrenci.sinif}
                           </div>
-                        </td>
-                        <td className="px-8 py-6">
-                          <span className="px-4 py-2 bg-gradient-to-r from-blue-900/50 to-blue-800/50 text-blue-300 rounded-xl text-sm font-medium border border-blue-700/50">
-                            {ogrenci.sinif}
-                          </span>
-                        </td>
-                        <td className="px-8 py-6">
-                          <div className="flex items-center gap-2">
-                            <span>📅</span>
-                            <span className={
-                              ogrenci.egitimYili === currentEgitimYili ? "text-green-400" : "text-purple-400"
-                            }>
-                              {ogrenci.egitimYili}
-                            </span>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-2 mb-3">
+                        <div className="text-center">
+                          <div className="text-xs text-gray-400 mb-1">Eğitim Yılı</div>
+                          <div className={`text-sm font-medium ${
+                            ogrenci.egitimYili === currentEgitimYili ? "text-green-400" : "text-purple-400"
+                          }`}>
+                            {ogrenci.egitimYili}
                           </div>
-                        </td>
-                        <td className="px-8 py-6">
-                          <span className={`px-4 py-2 rounded-xl text-sm font-medium ${
+                        </div>
+                        <div className="text-center">
+                          <div className="text-xs text-gray-400 mb-1">Durum</div>
+                          <span className={`px-2 py-1 rounded-lg text-xs font-medium ${
                             ogrenci.durum === 'Aktif'
                               ? 'bg-gradient-to-r from-green-900/50 to-emerald-900/50 text-green-300 border border-green-700/50'
                               : 'bg-gradient-to-r from-purple-900/50 to-pink-900/50 text-purple-300 border border-purple-700/50'
                           }`}>
                             {ogrenci.durum}
                           </span>
-                        </td>
-                        <td className="px-8 py-6">
-                          <div className="flex items-center gap-3">
-                            <span className={`text-2xl ${(ogrenci.gunlukSayisi || 0) > 0 ? 'text-green-400' : 'text-gray-500'}`}>
-                              {(ogrenci.gunlukSayisi || 0) > 0 ? '📖' : '📭'}
-                            </span>
-                            <span className={`font-bold text-xl ${
-                              (ogrenci.gunlukSayisi || 0) > 0 ? 'text-white' : 'text-gray-500'
-                            }`}>
-                              {ogrenci.gunlukSayisi || 0}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-8 py-6">
-                          <button
-                            onClick={() => handleOgrenciSec(ogrenci)}
-                            className="px-6 py-3 rounded-xl font-medium transition-all duration-300 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
-                          >
-                            👁️ Günlükleri Gör
-                          </button>
-                        </td>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xl ${(ogrenci.gunlukSayisi || 0) > 0 ? 'text-green-400' : 'text-gray-500'}`}>
+                            {(ogrenci.gunlukSayisi || 0) > 0 ? '📖' : '📭'}
+                          </span>
+                          <span className={`font-bold ${(ogrenci.gunlukSayisi || 0) > 0 ? 'text-white' : 'text-gray-500'}`}>
+                            {ogrenci.gunlukSayisi || 0} günlük
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => handleOgrenciSec(ogrenci)}
+                          className="px-4 py-2 rounded-xl font-medium transition-all duration-300 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-sm"
+                        >
+                          👁️ Gör
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* DESKTOP GÖRÜNÜM - TABLO */}
+                <div className="hidden sm:block overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-white/5">
+                      <tr>
+                        <th className="px-4 sm:px-6 md:px-8 py-3 text-left text-xs sm:text-sm font-medium text-gray-400 uppercase">Öğrenci</th>
+                        <th className="px-4 sm:px-6 md:px-8 py-3 text-left text-xs sm:text-sm font-medium text-gray-400 uppercase">Sınıf</th>
+                        <th className="px-4 sm:px-6 md:px-8 py-3 text-left text-xs sm:text-sm font-medium text-gray-400 uppercase">Eğitim Yılı</th>
+                        <th className="px-4 sm:px-6 md:px-8 py-3 text-left text-xs sm:text-sm font-medium text-gray-400 uppercase">Durum</th>
+                        <th className="px-4 sm:px-6 md:px-8 py-3 text-left text-xs sm:text-sm font-medium text-gray-400 uppercase">Günlük</th>
+                        <th className="px-4 sm:px-6 md:px-8 py-3 text-left text-xs sm:text-sm font-medium text-gray-400 uppercase">İşlem</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-white/10">
+                      {filtrelenmisOgrenciler.map(ogrenci => (
+                        <tr key={ogrenci.id} className="hover:bg-white/5 transition-colors">
+                          <td className="px-4 sm:px-6 md:px-8 py-4">
+                            <div className="flex items-center">
+                              <div className="text-2xl sm:text-3xl mr-3 sm:mr-4">{ogrenci.avatar || "👤"}</div>
+                              <div>
+                                <div className="font-bold text-white text-sm sm:text-base md:text-lg">{ogrenci.ad}</div>
+                                <div className="text-xs sm:text-sm text-gray-400">
+                                  No: {ogrenci.ogrenciNo}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 sm:px-6 md:px-8 py-4">
+                            <span className="px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-blue-900/50 to-blue-800/50 text-blue-300 rounded-xl text-xs sm:text-sm font-medium border border-blue-700/50">
+                              {ogrenci.sinif}
+                            </span>
+                          </td>
+                          <td className="px-4 sm:px-6 md:px-8 py-4">
+                            <div className="flex items-center gap-2">
+                              <span>📅</span>
+                              <span className={
+                                ogrenci.egitimYili === currentEgitimYili ? "text-green-400" : "text-purple-400"
+                              }>
+                                {ogrenci.egitimYili}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-4 sm:px-6 md:px-8 py-4">
+                            <span className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-sm font-medium ${
+                              ogrenci.durum === 'Aktif'
+                                ? 'bg-gradient-to-r from-green-900/50 to-emerald-900/50 text-green-300 border border-green-700/50'
+                                : 'bg-gradient-to-r from-purple-900/50 to-pink-900/50 text-purple-300 border border-purple-700/50'
+                            }`}>
+                              {ogrenci.durum}
+                            </span>
+                          </td>
+                          <td className="px-4 sm:px-6 md:px-8 py-4">
+                            <div className="flex items-center gap-2 sm:gap-3">
+                              <span className={`text-xl sm:text-2xl ${(ogrenci.gunlukSayisi || 0) > 0 ? 'text-green-400' : 'text-gray-500'}`}>
+                                {(ogrenci.gunlukSayisi || 0) > 0 ? '📖' : '📭'}
+                              </span>
+                              <span className={`font-bold text-base sm:text-lg md:text-xl ${
+                                (ogrenci.gunlukSayisi || 0) > 0 ? 'text-white' : 'text-gray-500'
+                              }`}>
+                                {ogrenci.gunlukSayisi || 0}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-4 sm:px-6 md:px-8 py-4">
+                            <button
+                              onClick={() => handleOgrenciSec(ogrenci)}
+                              className="px-4 py-2 sm:px-6 sm:py-3 rounded-xl font-medium transition-all duration-300 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-sm sm:text-base"
+                            >
+                              👁️ Günlükleri Gör
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             ) : (
-              <div className="text-center py-12">
-                <div className="text-6xl mb-4 opacity-50">📭</div>
-                <p className="text-xl text-gray-400">Henüz öğrenci kaydı yok.</p>
+              <div className="text-center py-8 sm:py-12">
+                <div className="text-4xl sm:text-6xl mb-3 sm:mb-4 opacity-50">📭</div>
+                <p className="text-base sm:text-xl text-gray-400">Henüz öğrenci kaydı yok.</p>
               </div>
             )}
 
-            <div className="p-6 bg-gradient-to-r from-blue-900/20 to-purple-900/20 text-center text-gray-300 text-sm border-t border-white/10">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 sm:p-6 bg-gradient-to-r from-blue-900/20 to-purple-900/20 text-center text-gray-300 text-xs sm:text-sm border-t border-white/10">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                 <div className="flex items-center justify-center gap-2">
-                  <span className="text-green-400 text-lg">✅</span>
+                  <span className="text-green-400 text-base sm:text-lg">✅</span>
                   <span><strong>2025-2026:</strong> Mevcut 5. sınıf öğrencileri</span>
                 </div>
                 <div className="flex items-center justify-center gap-2">
-                  <span className="text-purple-400 text-lg">🔮</span>
+                  <span className="text-purple-400 text-base sm:text-lg">🔮</span>
                   <span><strong>2026-2027:</strong> Gelecek yıl 5. sınıf olacak</span>
                 </div>
               </div>
@@ -723,7 +834,7 @@ function OgretmenDashboard() {
           </div>
         )}
 
-        <div className="mt-8 text-center text-gray-500 text-sm">
+        <div className="mt-6 sm:mt-8 text-center text-gray-500 text-xs sm:text-sm">
           <p>Ay Günlüğü • 5. Sınıf Öğretmen Paneli • {new Date().getFullYear()}</p>
           <p className="text-gray-600 text-xs mt-1">Mevcut Eğitim Yılı: {currentEgitimYili} • Sadece 5. sınıf öğrencileri</p>
         </div>

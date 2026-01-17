@@ -35,8 +35,8 @@ function YeniGunluk() {
       return urlDate;
     }
 
+    // ✅ DÜZELTİLDİ: Bugünün tarihini al (2026 yapma!)
     const today = new Date();
-    today.setFullYear(2026);
     return today.toISOString().split('T')[0];
   };
 
@@ -388,7 +388,7 @@ function YeniGunluk() {
                 <FaMoon className="text-white text-xl" />
               </div>
               <h1 className="text-2xl font-bold text-white">
-                Ay Günlüğü - 2026
+                Ay Günlüğü
               </h1>
             </div>
 
@@ -414,7 +414,7 @@ function YeniGunluk() {
               <div className="text-6xl animate-pulse">🌙</div>
             </div>
             <h1 className="text-4xl font-bold text-white mb-2">
-              2026 Yılı - Yeni Ay Gözlemi
+              Yeni Ay Gözlemi
             </h1>
             <p className="text-gray-300">
               Tarih: <span className="text-yellow-300 font-semibold">{formatDisplayDate(formData.tarih)}</span>
@@ -436,7 +436,7 @@ function YeniGunluk() {
                   <div>
                     <label className="block text-gray-300 mb-3 text-lg font-semibold flex items-center">
                       <FaCalendarAlt className="mr-2 text-yellow-400" />
-                      Gözlem Tarihi (2026)
+                      Gözlem Tarihi
                       {tarihKilitli && (
                         <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full bg-red-900/40 text-red-300 text-xs">
                           <FaLock className="mr-1" size={10} /> Kilitli
@@ -449,8 +449,7 @@ function YeniGunluk() {
                         name="tarih"
                         value={formData.tarih}
                         onChange={handleChange}
-                        min="2026-01-01"
-                        max="2026-12-31"
+                        // ✅ DÜZELTİLDİ: min/max kaldırıldı
                         className={`flex-1 px-4 py-3 bg-gray-900 border rounded-lg text-white focus:outline-none transition-colors ${
                           tarihKilitli 
                             ? 'border-red-700/60 cursor-not-allowed bg-gray-800/60' 
@@ -463,7 +462,7 @@ function YeniGunluk() {
                       <div className={`text-sm px-3 py-2 rounded-lg ${
                         tarihKilitli ? 'bg-red-900/30 text-red-300' : 'bg-gray-900/50 text-gray-400'
                       }`}>
-                        {tarihKilitli ? '🔒 Kilitli Tarih' : '📅 2026 Yılı'}
+                        {tarihKilitli ? '🔒 Kilitli Tarih' : '📅 Tarih Seç'}
                       </div>
                     </div>
                     <p className="text-gray-400 text-sm mt-2">
@@ -662,10 +661,10 @@ function YeniGunluk() {
       <footer className="py-8 border-t border-gray-800 mt-12">
         <div className="container mx-auto px-4 text-center">
           <p className="text-gray-400">
-            © 2026 Ay Günlüğü - Yeni Gözlem Kaydı
+            © Ay Günlüğü - Yeni Gözlem Kaydı
           </p>
           <p className="text-gray-500 text-sm mt-2">
-            Her akşam gökyüzüne bak ve 2026 yılı ay gözlemlerini kaydet!
+            Her akşam gökyüzüne bak ve ay gözlemlerini kaydet!
           </p>
         </div>
       </footer>
