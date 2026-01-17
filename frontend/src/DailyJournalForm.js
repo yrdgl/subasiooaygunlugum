@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { doc, setDoc, serverTimestamp, updateDoc, increment } from "firebase/firestore";
+import { db } from "../lib/firebase";
 
 function DailyJournalForm({ studentData, onSave }) {
   const [observation, setObservation] = useState('');
@@ -6,7 +8,6 @@ function DailyJournalForm({ studentData, onSave }) {
   const [date, setDate] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Bugünün tarihini varsayılan yap
   useEffect(() => {
     const today = new Date();
     const formattedDate = today.toISOString().split('T')[0];
@@ -26,47 +27,87 @@ function DailyJournalForm({ studentData, onSave }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
+    const studentId =
+      (studentData?.id) ||
+      localStorage.getItem("activeStudentId") ||
+      "";
+
+    if (!studentId) {
+      alert("❌ Öğrenci oturumu bulunamadı. Lütfen tekrar giriş yap.");
+      return;
+    }
+
     if (!observation.trim()) {
       alert('Lütfen gözlem notunuzu yazın!');
       return;
     }
 
+    if (observation.trim().length < 20) {
+      alert("Lütfen en az 20 karakter yazın.");
+      return;
+    }
+
+    if (!date) {
+      alert("❌ Tarih seçilmedi.");
+      return;
+    }
+
     setIsSubmitting(true);
 
-    // Günlük kaydı oluştur
+    const selected = moonPhases.find(p => p.emoji === moonPhase);
+
+    // ✅ Tek şema: students/{studentId}/journals/{date}
     const journalEntry = {
-      id: `${studentData.id}-${date}`,
-      studentId: studentData.id,
-      studentName: studentData.name,
-      studentSurname: studentData.surname,
-      studentClass: studentData.class,
-      date: date,
-      moonPhase: moonPhase,
-      moonPhaseName: moonPhases.find(p => p.emoji === moonPhase)?.name || 'Bilinmiyor',
-      observation: observation,
-      createdAt: new Date().toISOString()
+      studentId,
+
+      // öğrenci bilgileri (öğretmen panelinde işine yarar)
+      studentName: studentData?.name || "",
+      studentSurname: studentData?.surname || "",
+      studentClass: studentData?.class || "",
+
+      // tarih
+      tarihISO: date,          // YYYY-MM-DD
+      dateString: date,        // geriye uyum için kalsın
+
+      // ay evresi
+      moonPhase,
+      moonPhaseName: selected?.name || 'Bilinmiyor',
+
+      // gözlem
+      observation: observation.trim(),
+
+      // öğretmen yıldızı alanları (başlangıç)
+      ogretmenYildizi: 0,
+      ogretmenYorumu: "",
+      yildizVerilmeTarihi: null,
+
+      // timestamps
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
     };
 
     try {
-      // Şimdilik LocalStorage'a kaydedelim
-      // Firebase ekleyince burayı değiştireceğiz
-      const existingJournals = JSON.parse(localStorage.getItem('moonJournalEntries') || '[]');
-      const updatedJournals = [...existingJournals, journalEntry];
-      localStorage.setItem('moonJournalEntries', JSON.stringify(updatedJournals));
+      // ✅ Aynı güne tekrar kayıt olursa üzerine yazar (doc id = date)
+      const ref = doc(db, "students", studentId, "journals", date);
+      await setDoc(ref, journalEntry, { merge: true });
 
-      // Formu temizle
+      // ✅ gunlukSayisi artır (hata olsa bile günlük kaydı bozulmasın)
+      try {
+        await updateDoc(doc(db, "students", studentId), {
+          gunlukSayisi: increment(1),
+        });
+      } catch (_) {}
+
       setObservation('');
       setMoonPhase('🌕');
-      
-      // Ana sayfaya bildir
-      if (onSave) {
-        onSave(journalEntry);
-      }
+
+      if (onSave) onSave(journalEntry);
 
       alert('✅ Gözleminiz kaydedildi!');
     } catch (error) {
-      alert('❌ Kayıt sırasında hata oluştu: ' + error.message);
+      console.error("Günlük kaydetme hatası:", error);
+      alert('❌ Kayıt sırasında hata oluştu: ' + (error?.message || "Bilinmeyen hata"));
     } finally {
       setIsSubmitting(false);
     }
@@ -77,7 +118,7 @@ function DailyJournalForm({ studentData, onSave }) {
   return (
     <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
       <h2 className="text-2xl font-bold mb-6 text-white">📝 Bugünün Ay Gözlemini Kaydet</h2>
-      
+
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* SOL TARAF - FORM */}
@@ -90,6 +131,7 @@ function DailyJournalForm({ studentData, onSave }) {
                 onChange={(e) => setDate(e.target.value)}
                 className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                 max={new Date().toISOString().split('T')[0]}
+                disabled={isSubmitting}
               />
             </div>
 
@@ -104,11 +146,12 @@ function DailyJournalForm({ studentData, onSave }) {
                     type="button"
                     onClick={() => setMoonPhase(phase.emoji)}
                     className={`text-3xl rounded-lg p-2 transition-all duration-300 ${
-                      moonPhase === phase.emoji 
-                        ? 'bg-purple-600/50 border-2 border-purple-400 transform scale-110' 
+                      moonPhase === phase.emoji
+                        ? 'bg-purple-600/50 border-2 border-purple-400 transform scale-110'
                         : 'bg-white/10 hover:bg-white/20 border border-white/20'
                     }`}
                     title={`${phase.name}: ${phase.description}`}
+                    disabled={isSubmitting}
                   >
                     {phase.emoji}
                   </button>
@@ -126,11 +169,8 @@ function DailyJournalForm({ studentData, onSave }) {
                 value={observation}
                 onChange={(e) => setObservation(e.target.value)}
                 className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 min-h-[180px]"
-                placeholder="Ay'ı bugün nasıl gördün?...
-• Hava açık mıydı, bulutlu muydu?
-• Ay'ın şekli nasıldı?
-• Özel bir gözlemin var mı?
-• Duygu ve düşüncelerini yaz..."
+                placeholder="Ay'ı bugün nasıl gördün?..."
+                disabled={isSubmitting}
               />
               <p className="text-gray-400 text-sm mt-1">
                 Minimum 20 karakter ({observation.length}/20)
@@ -139,9 +179,9 @@ function DailyJournalForm({ studentData, onSave }) {
 
             <button
               type="submit"
-              disabled={isSubmitting || observation.length < 20}
+              disabled={isSubmitting || observation.trim().length < 20}
               className={`w-full font-semibold py-3 rounded-lg transition-all duration-300 flex items-center justify-center ${
-                isSubmitting || observation.length < 20
+                isSubmitting || observation.trim().length < 20
                   ? 'bg-gray-600 cursor-not-allowed'
                   : 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700'
               }`}

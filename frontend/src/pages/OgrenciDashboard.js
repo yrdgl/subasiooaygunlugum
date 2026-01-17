@@ -1,35 +1,117 @@
-// src/pages/OgrenciDashboard.js - SADELEŞTİRİLMİŞ SON HAL
+// src/pages/OgrenciDashboard.js - DEMO TEMİZLENMİŞ + FIRESTORE'DAN OKUYAN HAL
 
-import React, { useState } from 'react';
-import { 
-  FaMoon, FaCalendarAlt, 
+import React, { useEffect, useState } from 'react';
+import {
+  FaMoon, FaCalendarAlt,
   FaUserCircle, FaArrowRight, FaPlus, FaHistory,
   FaStar, FaSignOutAlt
 } from 'react-icons/fa';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { doc, getDoc, deleteDoc, collection, getDocs } from "firebase/firestore";
+import { signOut, deleteUser } from "firebase/auth";
+import { auth, db } from "../lib/firebase";
 
 function OgrenciDashboard() {
   const navigate = useNavigate();
-  
+
   // Bugünün tarihini al
   const getTodayDate = () => {
     const today = new Date();
     const options = { day: 'numeric', month: 'long', year: 'numeric' };
     return new Intl.DateTimeFormat('tr-TR', options).format(today);
   };
-  
-  // Demo verileri
-  const [ogrenci] = useState({
-    ad: "Ali",
-    soyad: "Yılmaz",
-    sinif: "5",
-    sube: "A",
-    ogrenciNo: "12345",
-    toplamPuan: 42
-  });
 
-  const handleCikis = () => {
+  // ✅ Gerçek öğrenci bilgisi (Firestore'dan)
+  const [ogrenci, setOgrenci] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // ✅ Öğretmen yıldız toplamı (günlüklerden)
+  const [toplamOgretmenYildizi, setToplamOgretmenYildizi] = useState(0);
+
+  // ✅ Firestore'dan öğrenciyi çek + günlüklerden yıldızları topla
+  useEffect(() => {
+    const loadStudent = async () => {
+      try {
+        const studentId = localStorage.getItem("activeStudentId");
+        if (!studentId) {
+          setLoading(false);
+          navigate("/OgrenciGiris");
+          return;
+        }
+
+        // 1) Öğrenci dokümanı
+        const snap = await getDoc(doc(db, "students", studentId));
+        if (!snap.exists()) {
+          setLoading(false);
+          alert("Öğrenci kaydı bulunamadı. Lütfen tekrar giriş yap.");
+          navigate("/OgrenciGiris");
+          return;
+        }
+        setOgrenci(snap.data());
+
+        // 2) Günlüklerden öğretmen yıldızlarını topla
+        let toplam = 0;
+        try {
+          const jSnap = await getDocs(collection(db, "gunlukler", studentId, "items"));
+          jSnap.forEach((d) => {
+            const data = d.data() || {};
+            const y = Number(data.ogretmenYildizi || 0);
+            if (!Number.isNaN(y)) toplam += y;
+          });
+        } catch (e) {
+          console.error("Günlük yıldızları okunamadı:", e);
+          // yıldızlar okunamazsa dashboard yine açılsın
+        }
+        setToplamOgretmenYildizi(toplam);
+
+        setLoading(false);
+      } catch (e) {
+        console.error("Öğrenci verisi okunamadı:", e);
+        setLoading(false);
+        alert("Öğrenci bilgisi yüklenemedi.");
+      }
+    };
+
+    loadStudent();
+  }, [navigate]);
+
+  const handleCikis = async () => {
+    try { await signOut(auth); } catch (_) {}
+    localStorage.removeItem("activeStudentId");
+    localStorage.removeItem("activeUid");
     navigate('/');
+  };
+
+  const handleKaydimiSil = async () => {
+    const ok = window.confirm("Hesabını ve tüm kayıtlarını silmek istediğine emin misin?");
+    if (!ok) return;
+
+    const studentId = localStorage.getItem("activeStudentId");
+    const user = auth.currentUser;
+
+    try {
+      if (studentId) {
+        await deleteDoc(doc(db, "students", studentId));
+      }
+
+      if (user) {
+        await deleteUser(user);
+      }
+
+      localStorage.removeItem("activeStudentId");
+      localStorage.removeItem("activeUid");
+      alert("Kaydın silindi.");
+      navigate('/');
+    } catch (err) {
+      console.error("Kayıt silme hatası:", err);
+      const code = err?.code || "";
+
+      if (code.includes("auth/requires-recent-login")) {
+        alert("Güvenlik için tekrar giriş yapman gerekiyor. Lütfen çıkış yapıp yeniden giriş yaptıktan sonra tekrar dene.");
+      } else {
+        alert("Kayıt silinemedi.");
+      }
+    }
   };
 
   const handleYeniGunluk = () => {
@@ -43,6 +125,26 @@ function OgrenciDashboard() {
   const handleAyTakvimi = () => {
     navigate('/AyTakvimi');
   };
+
+  // ✅ Güvenli alanlar (farklı isimlendirmelere karşı fallback)
+  const ad = ogrenci?.ad || ogrenci?.isim || "";
+  const soyad = ogrenci?.soyad || "";
+  const sinif = ogrenci?.sinif || "";
+  const sube = ogrenci?.sube || "";
+
+  // ✅ Artık toplam puan = öğretmenin verdiği yıldızların toplamı
+  const toplamPuan = Number(toplamOgretmenYildizi || 0);
+
+  // ✅ Öğretmen yıldız vermediyse yıldız bölümünü göstermeyelim
+  const teacherStarsVisible = toplamPuan > 0;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white flex items-center justify-center">
+        <div className="text-gray-300">Yükleniyor...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white">
@@ -58,18 +160,29 @@ function OgrenciDashboard() {
                 Ay Günlüğü
               </h1>
             </div>
-            
+
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
                   <FaUserCircle className="text-white" />
                 </div>
                 <div>
-                  <p className="font-semibold">{ogrenci.ad} {ogrenci.soyad}</p>
-                  <p className="text-sm text-gray-400">{ogrenci.sinif}-{ogrenci.sube}</p>
+                  <p className="font-semibold">
+                    {ad} {soyad}
+                  </p>
+                  <p className="text-sm text-gray-400">
+                    {sinif}{sube ? `-${sube}` : ""}
+                  </p>
                 </div>
               </div>
-              
+
+              <button
+                onClick={handleKaydimiSil}
+                className="flex items-center text-gray-300 hover:text-white transition-colors ml-4 px-3 py-2 hover:bg-gray-800 rounded-lg"
+              >
+                Kaydımı Sil
+              </button>
+
               <button
                 onClick={handleCikis}
                 className="flex items-center text-gray-300 hover:text-white transition-colors ml-4 px-3 py-2 hover:bg-gray-800 rounded-lg"
@@ -88,41 +201,43 @@ function OgrenciDashboard() {
           {/* Hoşgeldin Bölümü */}
           <div className="mb-8">
             <h1 className="text-4xl font-bold mb-2">
-              🌙 Merhaba, {ogrenci.ad}!
+              🌙 Merhaba{ad ? `, ${ad}!` : "!"}
             </h1>
             <p className="text-gray-300">
               Ay gözlem günlüğüne hoş geldin. Bugün ayı gözlemledin mi?
             </p>
           </div>
 
-          {/* Toplam Puan - İSTEDİĞİNİZ GİBİ */}
-          <div className="bg-gradient-to-r from-yellow-900/20 to-yellow-800/20 rounded-2xl p-6 mb-8 border border-yellow-700/30">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div className="text-5xl">⭐</div>
-                <div>
-                  <h3 className="text-xl font-bold">Toplam Puan: {ogrenci.toplamPuan}</h3>
-                  <p className="text-gray-300 text-sm mt-1">
-                    Öğretmeninden aldığın toplam yıldız puanı
-                  </p>
-                  <div className="flex items-center mt-3">
-                    <FaStar className="text-yellow-400 mr-2" />
-                    <span className="text-gray-300">
-                      En son 5 yıldız aldın! 🎉
-                    </span>
+          {/* Toplam Puan (öğretmen yıldız vermediyse hiç gösterme) */}
+          {teacherStarsVisible && (
+            <div className="bg-gradient-to-r from-yellow-900/20 to-yellow-800/20 rounded-2xl p-6 mb-8 border border-yellow-700/30">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="text-5xl">⭐</div>
+                  <div>
+                    <h3 className="text-xl font-bold">Toplam Puan: {toplamPuan}</h3>
+                    <p className="text-gray-300 text-sm mt-1">
+                      Öğretmeninden aldığın toplam yıldız puanı
+                    </p>
+                    <div className="flex items-center mt-3">
+                      <FaStar className="text-yellow-400 mr-2" />
+                      <span className="text-gray-300">
+                        Harika! Yıldızların öğretmenin verdikçe burada görünecek.
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="text-right">
-                <div className="text-2xl mb-1">🏆</div>
-                <p className="text-gray-400 text-sm">Başarı</p>
+                <div className="text-right">
+                  <div className="text-2xl mb-1">🏆</div>
+                  <p className="text-gray-400 text-sm">Başarı</p>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Hızlı Eylemler */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <button 
+            <button
               onClick={handleYeniGunluk}
               className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-blue-500 transition-all duration-300 hover:scale-[1.02] text-left"
             >
@@ -141,7 +256,7 @@ function OgrenciDashboard() {
               </div>
             </button>
 
-            <button 
+            <button
               onClick={handleGecmisGunlukler}
               className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-purple-500 transition-all duration-300 hover:scale-[1.02] text-left"
             >
@@ -160,7 +275,7 @@ function OgrenciDashboard() {
               </div>
             </button>
 
-            <button 
+            <button
               onClick={handleAyTakvimi}
               className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-green-500 transition-all duration-300 hover:scale-[1.02] text-left"
             >
@@ -192,7 +307,7 @@ function OgrenciDashboard() {
                   </p>
                 </div>
               </div>
-              
+
               <button
                 onClick={handleYeniGunluk}
                 className="px-6 py-3 bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-bold rounded-xl hover:from-yellow-600 hover:to-yellow-700 transition-all flex items-center"
@@ -200,24 +315,6 @@ function OgrenciDashboard() {
                 <FaPlus className="mr-2" />
                 Yeni Günlük Yaz
               </button>
-            </div>
-          </div>
-
-          {/* Demo Mod Bilgisi */}
-          <div className="mt-8 bg-blue-900/30 rounded-xl p-6 border border-blue-700/50">
-            <h3 className="text-xl font-bold text-white mb-3">
-              🎯 Demo Modu
-            </h3>
-            <p className="text-gray-300">
-              Şu anda Firebase bağlantısı yok. Bu bir demo gösterimdir.
-              Firebase eklenince gerçek öğrenci verileri yüklenecek.
-            </p>
-            <div className="mt-4 p-3 bg-gray-900/50 rounded-lg">
-              <p className="text-gray-400 text-sm">
-                <strong>Demo Öğrenci:</strong> Ali Yılmaz / 5-A
-                <br />
-                <strong>Toplam Puan:</strong> {ogrenci.toplamPuan} yıldız
-              </p>
             </div>
           </div>
         </div>

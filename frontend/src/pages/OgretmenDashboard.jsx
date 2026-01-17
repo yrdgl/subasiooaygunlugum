@@ -1,109 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// DEMO ÖĞRENCİ VERİLERİ
-const demoOgrenciler = [
-  { 
-    id: 1, 
-    ad: "Ahmet Yılmaz", 
-    sinif: "5-A", 
-    egitimYili: "2025-2026",
-    sonGunluk: "2026-01-15", 
-    durum: "Aktif", 
-    ogrenciNo: "1001",
-    gunlukSayisi: 3,
-    avatar: "👦",
-    aciklama: "5. sınıf öğrencisi"
-  },
-  { 
-    id: 2, 
-    ad: "Ayşe Demir", 
-    sinif: "5-B", 
-    egitimYili: "2025-2026",
-    sonGunluk: "2026-01-14", 
-    durum: "Aktif", 
-    ogrenciNo: "1002",
-    gunlukSayisi: 5,
-    avatar: "👧",
-    aciklama: "5. sınıf öğrencisi"
-  },
-  { 
-    id: 3, 
-    ad: "Zeynep Arslan", 
-    sinif: "5-B", 
-    egitimYili: "2026-2027",
-    sonGunluk: "-", 
-    durum: "Gelecek", 
-    ogrenciNo: "3001",
-    gunlukSayisi: 0,
-    avatar: "👧",
-    aciklama: "2026-2027'de 5. sınıf olacak"
-  },
-  { 
-    id: 4, 
-    ad: "Can Öztürk", 
-    sinif: "5-A", 
-    egitimYili: "2025-2026",
-    sonGunluk: "2026-01-09", 
-    durum: "Aktif", 
-    ogrenciNo: "1003",
-    gunlukSayisi: 4,
-    avatar: "👦",
-    aciklama: "5. sınıf öğrencisi"
-  },
-];
-
-// DEMO GÜNLÜK VERİLERİ - OGRETMEN YILDIZI ALANI EKLENDİ
-const demoGunlukler = [
-  {
-    id: 1,
-    ogrenciId: 1,
-    ogrenciAd: "Ahmet Yılmaz",
-    tarih: "2026-01-15",
-    baslik: "Ayın Hareketleri",
-    icerik: "Ay bugün çok parlaktı. Gökyüzünde net görünüyordu.",
-    ayFazi: "🌕 Dolunay",
-    yildiz: "4.5",
-    ogretmenYildizi: 0, // ✅ YENİ: Öğretmen yıldızı (0-5)
-    ogretmenYildizVerildi: false
-  },
-  {
-    id: 2,
-    ogrenciId: 1,
-    ogrenciAd: "Ahmet Yılmaz",
-    tarih: "2026-01-10",
-    baslik: "Yeni Ay Gözlemi",
-    icerik: "Ay neredeyse görünmüyordu. Sadece ince bir hilal vardı.",
-    ayFazi: "🌑 Hilal",
-    yildiz: "3.0",
-    ogretmenYildizi: 4, // ✅ ÖRNEK: 4 yıldız verilmiş
-    ogretmenYildizVerildi: true
-  },
-  {
-    id: 3,
-    ogrenciId: 2,
-    ogrenciAd: "Ayşe Demir",
-    tarih: "2026-01-14",
-    baslik: "Gözlem Notlarım",
-    icerik: "Ay'ın sağ tarafı aydınlıktı. Güzel bir manzara.",
-    ayFazi: "🌓 Yarımay",
-    yildiz: "5.0",
-    ogretmenYildizi: 5, // ✅ ÖRNEK: 5 yıldız verilmiş
-    ogretmenYildizVerildi: true
-  },
-  {
-    id: 4,
-    ogrenciId: 4,
-    ogrenciAd: "Can Öztürk",
-    tarih: "2026-01-09",
-    baslik: "Ay ve Bulutlar",
-    icerik: "Bulutlu bir geceydi. Ay bazen görünüyordu.",
-    ayFazi: "🌔 Şişkin Ay",
-    yildiz: "4.0",
-    ogretmenYildizi: 3, // ✅ ÖRNEK: 3 yıldız verilmiş
-    ogretmenYildizVerildi: true
-  },
-];
+// ✅ Firestore
+import {
+  collection,
+  getDocs,
+  query,
+  orderBy,
+  doc,
+  updateDoc,
+  serverTimestamp,
+} from "firebase/firestore";
+import { db } from "../lib/firebase";
 
 function OgretmenDashboard() {
   const navigate = useNavigate();
@@ -120,46 +28,256 @@ function OgretmenDashboard() {
     navigate('/OgretmenGiris');
   };
 
-  const [ogrenciler] = useState(demoOgrenciler);
+  // ✅ Firestore’dan dolacak
+  const [ogrenciler, setOgrenciler] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const [seciliSinif, setSeciliSinif] = useState('Tümü');
   const [seciliEgitimYili, setSeciliEgitimYili] = useState('2025-2026');
   const [seciliOgrenci, setSeciliOgrenci] = useState(null);
-  const [gunlukler, setGunlukler] = useState(demoGunlukler); // ✅ State olarak
 
-  const egitimYillari = ['Tümü', '2025-2026', '2026-2027'];
+  // 🔥 Seçili öğrencinin günlükleri
+  const [gunlukler, setGunlukler] = useState([]);
+
+  // ✅ Toast state (alert yerine)
+  const [toast, setToast] = useState({
+    open: false,
+    type: "info", // "success" | "error" | "info"
+    title: "",
+    message: ""
+  });
+
+  const showToast = (type, title, message, durationMs = 1800) => {
+    setToast({ open: true, type, title, message });
+    window.clearTimeout(showToast._t);
+    showToast._t = window.setTimeout(() => {
+      setToast(prev => ({ ...prev, open: false }));
+    }, durationMs);
+  };
+
+  const egitimYillari = ['Tümü', '2025-2026', '2026-2027', '2027-2028'];
   const siniflar = ['Tümü', '5-A', '5-B'];
   const currentEgitimYili = "2025-2026";
 
-  const filtrelenmisOgrenciler = ogrenciler.filter(ogrenci => {
-    const sinifUygun = seciliSinif === 'Tümü' || ogrenci.sinif === seciliSinif;
-    const yilUygun = seciliEgitimYili === 'Tümü' || ogrenci.egitimYili === seciliEgitimYili;
-    return sinifUygun && yilUygun;
-  });
+  // ✅ Students çek
+  useEffect(() => {
+    const loadStudents = async () => {
+      try {
+        setLoading(true);
 
-  const ogrenciGunlukleri = seciliOgrenci 
+        const snap = await getDocs(collection(db, "students"));
+
+        const list = snap.docs.map((d) => {
+          const data = d.data() || {};
+          const id = d.id;
+
+          // id formatı bazen "2025-2026_12345" olabilir, bazen uid olabilir.
+          // Biz yine de adı/soyadı/sınıfı data içinden gösteriyoruz.
+          const parts = (id || "").split("_");
+          const egitimYili = data.egitimYili || parts[0] || "";
+          const ogrenciNo = data.ogrenciNo || parts[1] || "";
+
+          const ad = (data.ad || data.isim || "").trim();
+          const soyad = (data.soyad || "").trim();
+          const fullName = `${ad} ${soyad}`.trim() || "-";
+
+          const sinif = (data.sinif || "").toString().trim();
+          const sube = (data.sube || "").toString().trim();
+          const sinifGosterim =
+            (sinif && sube) ? `${sinif}-${sube}` :
+            (sinif ? `${sinif}` : (data.sinifGosterim || "-"));
+
+          const durum = egitimYili === currentEgitimYili ? "Aktif" : "Gelecek";
+
+          return {
+            id,
+            ad: fullName,
+            sinif: sinifGosterim,
+            egitimYili: egitimYili || "-",
+            ogrenciNo: ogrenciNo || "-",
+            durum,
+            avatar: data.avatar || "👤",
+
+            // ⚠️ Bu alan güncel olmayabilir; bu yüzden BUTON KİLİDİNDE KULLANMIYORUZ
+            gunlukSayisi: Number(data.gunlukSayisi || 0),
+          };
+        });
+
+        setOgrenciler(list);
+      } catch (err) {
+        console.log("Öğrenciler okunamadı:", err);
+        showToast("error", "Yükleme Hatası", "Öğrenci listesi yüklenemedi. (Firestore izinleri / rules)");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadStudents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const filtrelenmisOgrenciler = useMemo(() => {
+    return ogrenciler.filter(ogrenci => {
+      const sinifUygun = seciliSinif === 'Tümü' || ogrenci.sinif === seciliSinif;
+      const yilUygun = seciliEgitimYili === 'Tümü' || ogrenci.egitimYili === seciliEgitimYili;
+      return sinifUygun && yilUygun;
+    });
+  }, [ogrenciler, seciliSinif, seciliEgitimYili]);
+
+  // ✅ Seçili öğrenci değişince: günlükleri Firestore’dan çek
+  useEffect(() => {
+    const loadJournalsOfStudent = async () => {
+      if (!seciliOgrenci?.id) {
+        setGunlukler([]);
+        return;
+      }
+
+      try {
+        // 🔥 Sizin gerçek path: gunlukler/{studentId}/items
+        // Tarih sıralaması: tarihISO varsa onunla; yoksa dateString ile de çalışır.
+        // orderBy field yoksa hata alırsak düz getDocs'e düşeceğiz.
+        let snap;
+        try {
+          const q = query(
+            collection(db, "gunlukler", seciliOgrenci.id, "items"),
+            orderBy("tarihISO", "desc")
+          );
+          snap = await getDocs(q);
+        } catch (e) {
+          // bazı projelerde orderBy yüzünden hata/izin olabiliyor; o yüzden fallback
+          snap = await getDocs(collection(db, "gunlukler", seciliOgrenci.id, "items"));
+        }
+
+        const list = snap.docs.map((d) => {
+          const data = d.data() || {};
+
+          const ayEmoji = data.ayEvresi || '🌑';
+          const ayAd = data.ayEvresiAd || 'Yeni Ay';
+
+          const tarihStr = data.tarih || "";
+          const tarihISO = data.tarihISO || data.dateString || "";
+
+          const ogretmenYildizi = Number(data.ogretmenYildizi || 0);
+
+          return {
+            id: d.id,
+            ogrenciId: seciliOgrenci.id,
+
+            baslik: `${ayEmoji} ${ayAd} Gözlemi`,
+            tarih: tarihStr || tarihISO || "-",
+            ayFazi: `${ayEmoji} ${ayAd}`,
+            icerik: (data.gozlem || "").toString() || "Gözlem notu eklenmedi",
+
+            // Ekranda kullanılan yıldız (öğrenci yıldızı gibi görünüyordu)
+            // Biz öğretmen yıldızını gösteriyoruz:
+            yildiz: ogretmenYildizi,
+
+            ogretmenYildizi,
+            ogretmenYildizVerildi: ogretmenYildizi > 0,
+
+            ogretmenYorumu: data.ogretmenYorumu || "",
+            yildizVerilmeTarihi: data.yildizVerilmeTarihi || null,
+            tarihISO,
+          };
+        });
+
+        setGunlukler(list);
+      } catch (err) {
+        console.log("Günlükler okunamadı:", err);
+        showToast("error", "Yükleme Hatası", "Günlükler yüklenemedi. (Firestore izinleri / rules)");
+        setGunlukler([]);
+      }
+    };
+
+    loadJournalsOfStudent();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seciliOgrenci]);
+
+  const ogrenciGunlukleri = seciliOgrenci
     ? gunlukler.filter(g => g.ogrenciId === seciliOgrenci.id)
     : [];
 
   const toplamOgrenci = filtrelenmisOgrenciler.length;
   const aktifOgrenci = filtrelenmisOgrenciler.filter(o => o.durum === 'Aktif').length;
   const gelecekOgrenci = filtrelenmisOgrenciler.filter(o => o.durum === 'Gelecek').length;
-  const toplamGunluk = filtrelenmisOgrenciler.reduce((toplam, ogrenci) => toplam + ogrenci.gunlukSayisi, 0);
 
-  // ✅ YENİ: Yıldız verme fonksiyonu
-  const handleYildizVer = (gunlukId, yildiz) => {
-    setGunlukler(prev => prev.map(gunluk => {
-      if (gunluk.id === gunlukId) {
-        return {
-          ...gunluk,
-          ogretmenYildizi: yildiz,
-          ogretmenYildizVerildi: yildiz > 0
-        };
+  // ✅ Öğretmen yıldızı Firestore’a yaz (öğrenci görecek)
+  const handleYildizVer = async (gunlukId, yeniYildiz) => {
+    if (!seciliOgrenci?.id) return;
+
+    try {
+      // ✅ Mevcut günlüğü bul
+      const mevcutGunluk = gunlukler.find(g => g.id === gunlukId);
+      if (!mevcutGunluk) {
+        showToast("error", "Hata", "Günlük bulunamadı.");
+        return;
       }
-      return gunluk;
-    }));
-    
-    if (yildiz > 0) {
-      alert(`⭐ ${yildiz} yıldız verildi! Öğrenci görebilecek.`);
+
+      const eskiYildiz = Number(mevcutGunluk.ogretmenYildizi || 0);
+      const yildiz = Number(yeniYildiz || 0);
+
+      // ✅ KURAL: Yıldız SADECE ARTIRILABİLİR (A modeli)
+      if (eskiYildiz > 0 && yildiz < eskiYildiz) {
+        showToast(
+          "error",
+          "Yıldız Azaltılamaz ⚠️",
+          `Bu günlük zaten ${eskiYildiz} yıldız aldı. Yıldızı sadece artırabilirsiniz. (${eskiYildiz} → ${yildiz} değil)`
+        );
+        return;
+      }
+
+      // ✅ Aynı yıldız tekrar veriliyorsa bilgi ver
+      if (eskiYildiz === yildiz && yildiz > 0) {
+        showToast("info", "Yıldız Zaten Verildi", `Bu günlük zaten ${yildiz} yıldız aldı.`);
+        return;
+      }
+
+      const ref = doc(db, "gunlukler", seciliOgrenci.id, "items", gunlukId);
+
+      await updateDoc(ref, {
+        ogretmenYildizi: yildiz,
+        yildizVerilmeTarihi: yildiz > 0 ? serverTimestamp() : null,
+        updatedAt: serverTimestamp(),
+      });
+
+      // UI hemen güncellensin
+      setGunlukler(prev => prev.map(g => (
+        g.id === gunlukId
+          ? {
+              ...g,
+              ogretmenYildizi: yildiz,
+              ogretmenYildizVerildi: yildiz > 0,
+              yildiz: yildiz,
+            }
+          : g
+      )));
+
+      if (yildiz > 0) {
+        if (eskiYildiz === 0) {
+          // ✅ İLK YILDIZ: Kilit oluştu
+          showToast(
+            "success",
+            "Yıldız Verildi & Kilitlendi ✅",
+            `⭐ ${yildiz} yıldız verildi! Günlük kilitlendi (öğrenci artık silemez).`
+          );
+        } else if (yildiz > eskiYildiz) {
+          // ✅ YILDIZ ARTIRILDI
+          showToast(
+            "success",
+            "Yıldız Artırıldı 📈",
+            `Yıldız ${eskiYildiz} → ${yildiz} olarak güncellendi. Kilit devam ediyor.`
+          );
+        } else {
+          // ✅ Aynı yıldız (0'a çekme veya aynı)
+          showToast("success", "Yıldız Güncellendi", `Yıldız ${yildiz} olarak ayarlandı.`);
+        }
+      } else {
+        // ✅ Yıldız kaldırıldı (0)
+        showToast("info", "Yıldız Kaldırıldı", "Yıldız değerlendirmesi kaldırıldı. Kilit kalktı.");
+      }
+    } catch (err) {
+      console.log("Yıldız kaydedilemedi:", err);
+      showToast("error", "Kayıt Hatası ❌", "Yıldız kaydedilemedi. (Firestore rules / izin)");
     }
   };
 
@@ -171,13 +289,54 @@ function OgretmenDashboard() {
     setSeciliOgrenci(null);
   };
 
+  const toastTheme = {
+    success: {
+      ring: "border-yellow-500/40",
+      badge: "bg-yellow-500",
+      title: "text-white",
+      msg: "text-gray-200"
+    },
+    error: {
+      ring: "border-red-500/40",
+      badge: "bg-red-500",
+      title: "text-white",
+      msg: "text-gray-200"
+    },
+    info: {
+      ring: "border-blue-500/40",
+      badge: "bg-blue-500",
+      title: "text-white",
+      msg: "text-gray-200"
+    }
+  };
+
+  const t = toastTheme[toast.type] || toastTheme.info;
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0a0e27] via-[#1a1f3a] to-[#0a0e27] text-white p-4">
-      <div className="fixed inset-0 bg-cover bg-center opacity-20"
+      {/* ✅ TOAST */}
+      {toast.open && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-xl">
+          <div className={`bg-gray-900/90 backdrop-blur-md border ${t.ring} rounded-2xl shadow-xl px-5 py-4`}>
+            <div className="flex items-start gap-3">
+              <div className={`w-3 h-3 rounded-full mt-2 ${t.badge}`} />
+              <div className="flex-1">
+                <div className={`font-bold ${t.title}`}>{toast.title}</div>
+                {toast.message && (
+                  <div className={`text-sm mt-1 ${t.msg}`}>{toast.message}</div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div
+        className="fixed inset-0 bg-cover bg-center opacity-20"
         style={{
           backgroundImage: 'url(https://customer-assets.emergentagent.com/job_moontracker-5/artifacts/zksvk4wp_AY%20ARKAPLAN.jpg)',
-        }}>
-      </div>
+        }}
+      />
 
       <div className="relative z-10 max-w-7xl mx-auto">
         <header className="mb-8 pt-8">
@@ -190,7 +349,7 @@ function OgretmenDashboard() {
               <span className="text-yellow-300">🎯</span> Mevcut 5. Sınıf: {currentEgitimYili}
             </div>
           </div>
-          
+
           <div className="mt-4 flex gap-4">
             <a href="/" className="text-gray-400 hover:text-white transition-colors">
               ← Ana Sayfa
@@ -207,34 +366,34 @@ function OgretmenDashboard() {
               <h3 className="font-semibold text-gray-300">Filtrelenmiş Öğrenci</h3>
               <div className="text-2xl">👥</div>
             </div>
-            <p className="text-3xl font-bold text-white">{toplamOgrenci}</p>
+            <p className="text-3xl font-bold text-white">{loading ? "…" : toplamOgrenci}</p>
             <p className="text-sm text-blue-300 mt-2">
               {seciliEgitimYili === 'Tümü' ? 'Tüm yıllar' : seciliEgitimYili}
             </p>
           </div>
-          
+
           <div className="bg-gradient-to-br from-green-900/40 to-emerald-900/40 backdrop-blur-xl rounded-2xl border border-green-700/30 p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-gray-300">Aktif Öğrenci</h3>
               <div className="text-2xl">⭐</div>
             </div>
-            <p className="text-3xl font-bold text-white">{aktifOgrenci}</p>
+            <p className="text-3xl font-bold text-white">{loading ? "…" : aktifOgrenci}</p>
             <p className="text-sm text-green-300 mt-2">5. sınıf ({currentEgitimYili})</p>
           </div>
-          
+
           <div className="bg-gradient-to-br from-purple-900/40 to-pink-900/40 backdrop-blur-xl rounded-2xl border border-purple-700/30 p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-gray-300">Gelecek Öğrenci</h3>
               <div className="text-2xl">🔮</div>
             </div>
-            <p className="text-3xl font-bold text-white">{gelecekOgrenci}</p>
+            <p className="text-3xl font-bold text-white">{loading ? "…" : gelecekOgrenci}</p>
             <p className="text-sm text-purple-300 mt-2">2026-2027 (5. sınıf olacak)</p>
           </div>
         </div>
 
         <div className="bg-gradient-to-br from-[#1a1f3a]/80 to-[#0a0e27]/80 backdrop-blur-xl rounded-2xl border border-white/10 p-6 mb-8">
           <h2 className="text-2xl font-bold mb-6 text-white">🌌 Filtreleme Seçenekleri</h2>
-          
+
           <div className="grid md:grid-cols-2 gap-6">
             <div>
               <h3 className="text-lg font-bold mb-3 text-gray-300 flex items-center gap-2">
@@ -242,7 +401,7 @@ function OgretmenDashboard() {
               </h3>
               <div className="flex flex-wrap gap-2">
                 {egitimYillari.map(yil => (
-                  <button 
+                  <button
                     key={yil}
                     onClick={() => setSeciliEgitimYili(yil)}
                     className={`px-4 py-2 rounded-lg transition-all ${
@@ -273,7 +432,7 @@ function OgretmenDashboard() {
               </h3>
               <div className="flex flex-wrap gap-2">
                 {siniflar.map(sinif => (
-                  <button 
+                  <button
                     key={sinif}
                     onClick={() => setSeciliSinif(sinif)}
                     className={`px-4 py-2 rounded-lg transition-all ${
@@ -298,7 +457,7 @@ function OgretmenDashboard() {
             <div className="p-8 border-b border-white/10 bg-gradient-to-r from-blue-900/30 to-purple-900/30">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-6">
-                  <button 
+                  <button
                     onClick={handleGeriDon}
                     className="text-gray-400 hover:text-white transition-colors text-lg"
                   >
@@ -306,7 +465,7 @@ function OgretmenDashboard() {
                   </button>
                   <div>
                     <div className="flex items-center gap-4 mb-2">
-                      <div className="text-5xl">{seciliOgrenci.avatar}</div>
+                      <div className="text-5xl">{seciliOgrenci.avatar || "👤"}</div>
                       <div>
                         <h2 className="text-3xl font-bold text-white">
                           {seciliOgrenci.ad}
@@ -319,8 +478,8 @@ function OgretmenDashboard() {
                   </div>
                 </div>
                 <span className={`px-4 py-2 rounded-xl text-sm font-medium ${
-                  seciliOgrenci.durum === 'Aktif' 
-                    ? 'bg-gradient-to-r from-green-900/50 to-emerald-900/50 text-green-300 border border-green-700/50' 
+                  seciliOgrenci.durum === 'Aktif'
+                    ? 'bg-gradient-to-r from-green-900/50 to-emerald-900/50 text-green-300 border border-green-700/50'
                     : 'bg-gradient-to-r from-purple-900/50 to-pink-900/50 text-purple-300 border border-purple-700/50'
                 }`}>
                   {seciliOgrenci.durum}
@@ -338,7 +497,7 @@ function OgretmenDashboard() {
                   <span className="text-yellow-300">⭐</span> Öğrenciler yıldızlarını görecek
                 </div>
               </div>
-              
+
               {ogrenciGunlukleri.length > 0 ? (
                 <div className="space-y-6">
                   {ogrenciGunlukleri.map(gunluk => (
@@ -353,26 +512,30 @@ function OgretmenDashboard() {
                             <span className="flex items-center gap-2">
                               {gunluk.ayFazi}
                             </span>
+                            {gunluk.ogretmenYildizi > 0 && (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full bg-yellow-900/30 text-yellow-300 text-xs">
+                                🔒 Kilitli ({gunluk.ogretmenYildizi} yıldız)
+                              </span>
+                            )}
                           </div>
                         </div>
                         <div className="flex flex-col items-end">
                           <div className="text-yellow-400 text-2xl">
-                            {'★'.repeat(Math.floor(gunluk.yildiz))}
-                            {'☆'.repeat(5 - Math.floor(gunluk.yildiz))}
+                            {'★'.repeat(Math.floor(Number(gunluk.yildiz || 0)))}
+                            {'☆'.repeat(5 - Math.floor(Number(gunluk.yildiz || 0)))}
                           </div>
-                          <span className="text-sm text-gray-400 mt-1">Öğrenci: {gunluk.yildiz} / 5.0</span>
+                          <span className="text-sm text-gray-400 mt-1">Öğretmen: {gunluk.yildiz} / 5</span>
                         </div>
                       </div>
-                      
+
                       <div className="bg-gray-900/30 rounded-xl p-4 mt-4 border border-gray-800/50">
-                        <p className="text-gray-300 leading-relaxed mb-4">{gunluk.icerik}</p>
-                        
-                        {/* ✅ ÖĞRETMEN YILDIZ VERME BÖLÜMÜ */}
+                        <p className="text-gray-300 leading-relaxed mb-4 whitespace-pre-wrap">{gunluk.icerik}</p>
+
                         <div className="mt-4 pt-4 border-t border-gray-800/50">
                           <div className="flex justify-between items-center">
                             <div>
                               <h5 className="font-bold text-white mb-2 flex items-center gap-2">
-                                <span className="text-yellow-400">👨‍🏫</span> 
+                                <span className="text-yellow-400">👨‍🏫</span>
                                 Öğretmen Değerlendirmesi
                               </h5>
                               {gunluk.ogretmenYildizVerildi ? (
@@ -382,19 +545,15 @@ function OgretmenDashboard() {
                                     {'☆'.repeat(5 - gunluk.ogretmenYildizi)}
                                   </div>
                                   <span className="text-white font-bold">{gunluk.ogretmenYildizi} / 5</span>
-                                  <button
-                                    onClick={() => handleYildizVer(gunluk.id, 0)}
-                                    className="text-sm text-gray-400 hover:text-white ml-4"
-                                  >
-                                    ✏️ Değiştir
-                                  </button>
+                                  <div className="text-sm text-gray-400 ml-4">
+                                    {gunluk.ogretmenYildizi === 5 ? "📈 Maksimum" : "📈 Artırılabilir"}
+                                  </div>
                                 </div>
                               ) : (
                                 <p className="text-gray-400 text-sm">Henüz değerlendirilmemiş</p>
                               )}
                             </div>
-                            
-                            {/* YILDIZ VERME BUTONLARI */}
+
                             <div className="flex flex-col items-end">
                               <p className="text-gray-400 text-sm mb-2">Yıldız Ver:</p>
                               <div className="flex gap-1">
@@ -405,18 +564,30 @@ function OgretmenDashboard() {
                                     className={`px-3 py-1 rounded-lg transition-all ${
                                       gunluk.ogretmenYildizi === yildiz
                                         ? 'bg-yellow-600 text-white'
+                                        : gunluk.ogretmenYildizi > 0 && yildiz < gunluk.ogretmenYildizi
+                                        ? 'bg-gray-800 text-gray-500 cursor-not-allowed opacity-50'
                                         : 'bg-gray-800 hover:bg-gray-700 text-gray-300'
                                     }`}
+                                    disabled={gunluk.ogretmenYildizi > 0 && yildiz < gunluk.ogretmenYildizi}
+                                    title={gunluk.ogretmenYildizi > 0 && yildiz < gunluk.ogretmenYildizi 
+                                      ? `Yıldız azaltılamaz (${gunluk.ogretmenYildizi} → ${yildiz})`
+                                      : "Yıldız ver"
+                                    }
                                   >
                                     {yildiz} ★
+                                    {gunluk.ogretmenYildizi > 0 && yildiz < gunluk.ogretmenYildizi && " ⬇️"}
+                                    {gunluk.ogretmenYildizi > 0 && yildiz > gunluk.ogretmenYildizi && " ⬆️"}
                                   </button>
                                 ))}
                               </div>
+                              <div className="text-xs text-gray-500 mt-1 text-right">
+                                {gunluk.ogretmenYildizi > 0 ? "📈 Sadece artırılabilir" : "✅ İlk yıldız"}
+                              </div>
                             </div>
                           </div>
-                          
+
                           <div className="mt-3 text-xs text-gray-500">
-                            ⓘ Öğrenci bu yıldızı günlüklerinde görecek
+                            ⓘ Öğrenci bu yıldızı günlüklerinde görecek • Yıldız verilince günlük kilitlenir
                           </div>
                         </div>
                       </div>
@@ -438,19 +609,23 @@ function OgretmenDashboard() {
                 <div>
                   <h2 className="text-2xl font-bold text-white mb-2">👥 5. Sınıf Öğrenci Listesi</h2>
                   <p className="text-gray-300">
-                    {seciliEgitimYili === 'Tümü' ? 'Tüm eğitim yılları' : seciliEgitimYili} • 
-                    {seciliSinif === 'Tümü' ? ' 5-A ve 5-B sınıfları' : ` ${seciliSinif}`} • 
-                    Toplam {filtrelenmisOgrenciler.length} öğrenci
+                    {seciliEgitimYili === 'Tümü' ? 'Tüm eğitim yılları' : seciliEgitimYili} •
+                    {seciliSinif === 'Tümü' ? ' 5-A ve 5-B sınıfları' : ` ${seciliSinif}`} •
+                    Toplam {loading ? "…" : filtrelenmisOgrenciler.length} öğrenci
                   </p>
                 </div>
                 <div className="text-sm bg-gray-900/50 px-4 py-2 rounded-xl border border-gray-700">
-                  <span className="text-green-400">✅ Aktif</span> • 
+                  <span className="text-green-400">✅ Aktif</span> •
                   <span className="text-purple-400 mx-2">🔮 Gelecek</span>
                 </div>
               </div>
             </div>
-            
-            {filtrelenmisOgrenciler.length > 0 ? (
+
+            {loading ? (
+              <div className="text-center py-12">
+                <p className="text-gray-300">Öğrenciler yükleniyor...</p>
+              </div>
+            ) : filtrelenmisOgrenciler.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-white/5">
@@ -468,11 +643,11 @@ function OgretmenDashboard() {
                       <tr key={ogrenci.id} className="hover:bg-white/5 transition-colors">
                         <td className="px-8 py-6">
                           <div className="flex items-center">
-                            <div className="text-3xl mr-4">{ogrenci.avatar}</div>
+                            <div className="text-3xl mr-4">{ogrenci.avatar || "👤"}</div>
                             <div>
                               <div className="font-bold text-white text-lg">{ogrenci.ad}</div>
                               <div className="text-sm text-gray-400">
-                                No: {ogrenci.ogrenciNo} • {ogrenci.aciklama}
+                                No: {ogrenci.ogrenciNo}
                               </div>
                             </div>
                           </div>
@@ -494,37 +669,31 @@ function OgretmenDashboard() {
                         </td>
                         <td className="px-8 py-6">
                           <span className={`px-4 py-2 rounded-xl text-sm font-medium ${
-                            ogrenci.durum === 'Aktif' 
-                              ? 'bg-gradient-to-r from-green-900/50 to-emerald-900/50 text-green-300 border border-green-700/50' 
+                            ogrenci.durum === 'Aktif'
+                              ? 'bg-gradient-to-r from-green-900/50 to-emerald-900/50 text-green-300 border border-green-700/50'
                               : 'bg-gradient-to-r from-purple-900/50 to-pink-900/50 text-purple-300 border border-purple-700/50'
                           }`}>
                             {ogrenci.durum}
-                            {ogrenci.durum === 'Gelecek' && ' (5. sınıf olacak)'}
                           </span>
                         </td>
                         <td className="px-8 py-6">
                           <div className="flex items-center gap-3">
-                            <span className={`text-2xl ${ogrenci.gunlukSayisi > 0 ? 'text-green-400' : 'text-gray-500'}`}>
-                              {ogrenci.gunlukSayisi > 0 ? '📖' : '📭'}
+                            <span className={`text-2xl ${(ogrenci.gunlukSayisi || 0) > 0 ? 'text-green-400' : 'text-gray-500'}`}>
+                              {(ogrenci.gunlukSayisi || 0) > 0 ? '📖' : '📭'}
                             </span>
                             <span className={`font-bold text-xl ${
-                              ogrenci.gunlukSayisi > 0 ? 'text-white' : 'text-gray-500'
+                              (ogrenci.gunlukSayisi || 0) > 0 ? 'text-white' : 'text-gray-500'
                             }`}>
-                              {ogrenci.gunlukSayisi}
+                              {ogrenci.gunlukSayisi || 0}
                             </span>
                           </div>
                         </td>
                         <td className="px-8 py-6">
                           <button
                             onClick={() => handleOgrenciSec(ogrenci)}
-                            className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
-                              ogrenci.gunlukSayisi > 0
-                                ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white'
-                                : 'bg-gray-800/50 text-gray-400 cursor-not-allowed'
-                            }`}
-                            disabled={ogrenci.gunlukSayisi === 0}
+                            className="px-6 py-3 rounded-xl font-medium transition-all duration-300 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
                           >
-                            {ogrenci.gunlukSayisi > 0 ? '👁️ Günlükleri Gör' : 'Günlük Yok'}
+                            👁️ Günlükleri Gör
                           </button>
                         </td>
                       </tr>
@@ -534,8 +703,8 @@ function OgretmenDashboard() {
               </div>
             ) : (
               <div className="text-center py-12">
-                <div className="text-6xl mb-4 opacity-50">🔍</div>
-                <p className="text-xl text-gray-400">Bu filtrelerle eşleşen öğrenci bulunamadı.</p>
+                <div className="text-6xl mb-4 opacity-50">📭</div>
+                <p className="text-xl text-gray-400">Henüz öğrenci kaydı yok.</p>
               </div>
             )}
 

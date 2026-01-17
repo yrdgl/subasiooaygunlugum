@@ -1,31 +1,45 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  FaMoon, FaCalendarAlt, 
-  FaArrowLeft, FaSave 
+import {
+  FaMoon, FaCalendarAlt,
+  FaArrowLeft, FaSave, FaLock
 } from 'react-icons/fa';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+
+// ✅ Firestore
+import { db } from "../lib/firebase";
+import {
+  collection,
+  addDoc,
+  serverTimestamp,
+  query,
+  where,
+  getDocs,
+  limit,
+  doc,
+  updateDoc
+} from "firebase/firestore";
 
 function YeniGunluk() {
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   const getUrlDate = () => {
     const searchParams = new URLSearchParams(location.search);
     return searchParams.get('date');
   };
-  
+
   const getTodayDate = () => {
     const urlDate = getUrlDate();
-    
+
     if (urlDate) {
       return urlDate;
     }
-    
+
     const today = new Date();
     today.setFullYear(2026);
     return today.toISOString().split('T')[0];
   };
-  
+
   const formatDisplayDate = (dateString) => {
     const date = new Date(dateString);
     const options = { day: 'numeric', month: 'long', year: 'numeric' };
@@ -39,6 +53,29 @@ function YeniGunluk() {
   });
 
   const [karakterSayisi, setKarakterSayisi] = useState(0);
+  const [saving, setSaving] = useState(false);
+
+  // ✅ Aynı tarihte mevcut günlük varsa güncelleme modu
+  const [existingDocId, setExistingDocId] = useState(null);
+  
+  // ✅ YENİ: Bu tarihte KİTLİ günlük var mı? (ogretmenYildizi > 0)
+  const [tarihKilitli, setTarihKilitli] = useState(false);
+
+  // ✅ Toast state (alert yerine)
+  const [toast, setToast] = useState({
+    open: false,
+    type: "info", // "success" | "error" | "info"
+    title: "",
+    message: ""
+  });
+
+  const showToast = (type, title, message, durationMs = 1800) => {
+    setToast({ open: true, type, title, message });
+    window.clearTimeout(showToast._t);
+    showToast._t = window.setTimeout(() => {
+      setToast(prev => ({ ...prev, open: false }));
+    }, durationMs);
+  };
 
   useEffect(() => {
     const urlDate = getUrlDate();
@@ -48,6 +85,7 @@ function YeniGunluk() {
         tarih: urlDate
       }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location]);
 
   const ayEvreleri = [
@@ -63,74 +101,284 @@ function YeniGunluk() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    
+    // ✅ Tarih değiştiğinde kilit kontrolü yap
+    if (name === 'tarih') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+      
+      // Kilit kontrolü için useEffect zaten çalışacak
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
 
     if (name === 'gozlem') {
       setKarakterSayisi(value.length);
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    if (!formData.ayEvresi) {
-      alert("❌ Lütfen ayın evresini seçin!");
-      return;
-    }
-    
-    const secilenAyEvresi = ayEvreleri.find(e => e.deger === formData.ayEvresi);
-    
-    const gunlukVerisi = {
-      id: Date.now(),
-      tarih: formatDisplayDate(formData.tarih),
-      ayEvresi: secilenAyEvresi?.emoji || '🌑',
-      ayEvresiAd: secilenAyEvresi?.ad || 'Yeni Ay',
-      icerik: formData.gozlem && formData.gozlem.length > 100 
-        ? formData.gozlem.substring(0, 100) + '...' 
-        : formData.gozlem || 'Gözlem notu eklenmedi',
-      tamIcerik: formData.gozlem || '',
-      goruntulenme: 0,
-      duzenlemeTarihi: null,
-      olusturmaTarihi: new Date().toLocaleString('tr-TR'),
-      // Yıldız alanları eklendi
-      ogretmenYildizi: null,
-      ogretmenYorumu: null,
-      yildizVerilmeTarihi: null
-    };
-    
-    const mevcutGunlukler = JSON.parse(localStorage.getItem('gunlukVerileri') || '[]');
-    mevcutGunlukler.unshift(gunlukVerisi);
-    localStorage.setItem('gunlukVerileri', JSON.stringify(mevcutGunlukler));
-    
-    alert(`✅ Günlük başarıyla kaydedildi!\nTarih: ${formatDisplayDate(formData.tarih)}\nAy Evresi: ${secilenAyEvresi?.ad}`);
-    
-    // DÜZELTME BURADA: Gunlukler'e değil, OgrenciDashboard'a yönlendir
-    navigate('/OgrenciDashboard');
+  const getStudentId = () => {
+    return (
+      localStorage.getItem("activeStudentId") ||
+      localStorage.getItem("studentId") ||
+      localStorage.getItem("activeStudent") ||
+      ""
+    );
   };
 
-  const handleDemoDoldur = () => {
-    const bugun = new Date();
-    bugun.setFullYear(2026);
-    
-    const secilenAyEvresi = 'dolunay';
-    const secilenAyEvresiAd = ayEvreleri.find(e => e.deger === secilenAyEvresi)?.ad || 'Dolunay';
-    
-    setFormData({
-      tarih: bugun.toISOString().split('T')[0],
-      ayEvresi: secilenAyEvresi,
-      gozlem: `${formatDisplayDate(bugun.toISOString().split('T')[0])} tarihinde ayı gözlemledim. Ay ${secilenAyEvresiAd} evresindeydi ve inanılmaz parlaktı.`
-    });
-    
-    setKarakterSayisi(120);
-    
-    alert("Demo bilgileri yüklendi. Kaydetmek için 'GÜNLÜĞÜ KAYDET' butonuna tıklayın.");
+  // ✅ Tarih değiştikçe: o tarihte kayıt var mı? KİTLİ mi?
+  useEffect(() => {
+    const loadExistingForDate = async () => {
+      const studentId = getStudentId();
+      if (!studentId) return;
+
+      const tarihISO = formData.tarih;
+
+      try {
+        const colRef = collection(db, "gunlukler", studentId, "items");
+        const qRef = query(colRef, where("dateString", "==", tarihISO), limit(1));
+        const snap = await getDocs(qRef);
+
+        if (snap.empty) {
+          setExistingDocId(null);
+          setTarihKilitli(false); // ✅ Kilit yok
+
+          // yeni tarih seçildiyse "düzenleme" değil "yeni" gibi hissetsin
+          setFormData(prev => ({ ...prev, ayEvresi: '', gozlem: '' }));
+          setKarakterSayisi(0);
+          return;
+        }
+
+        const d = snap.docs[0];
+        const data = d.data();
+
+        setExistingDocId(d.id);
+
+        // ✅ KİLİT KONTROLÜ: Öğretmen yıldız verdi mi? (ogretmenYildizi > 0)
+        const yildiz = Number(data.ogretmenYildizi || 0);
+        const kilitli = yildiz > 0;
+        setTarihKilitli(kilitli);
+
+        if (kilitli) {
+          showToast(
+            "error",
+            "Tarih Kilitli 🔒",
+            `Bu tarihte ${yildiz} yıldızlı günlük var. Yeni günlük yazamazsınız, ancak mevcut günlüğü düzenleyebilirsiniz.`,
+            4000
+          );
+        }
+
+        // mevcut kaydı forma bas
+        setFormData(prev => ({
+          ...prev,
+          ayEvresi: data?.ayEvresiDeger || prev.ayEvresi || "",
+          gozlem: data?.gozlem || ""
+        }));
+        setKarakterSayisi((data?.gozlem || "").length);
+      } catch (e) {
+        console.log("Mevcut günlük yüklenemedi:", e);
+        setTarihKilitli(false); // Hata durumunda kilitli değil kabul et
+        // sessiz geç
+      }
+    };
+
+    loadExistingForDate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.tarih]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // ✅ KİLİT KONTROLÜ: Bu tarihte kilitli günlük var mı?
+    if (tarihKilitli) {
+      showToast(
+        "error",
+        "Kayıt Engellendi 🔒",
+        "Bu tarihte öğretmen tarafından yıldız verilmiş bir günlük var. Yeni günlük yazamazsınız."
+      );
+      return;
+    }
+
+    if (!formData.ayEvresi) {
+      showToast("error", "Eksik Bilgi", "Lütfen ayın evresini seçin!");
+      return;
+    }
+
+    const studentId = getStudentId();
+    if (!studentId) {
+      showToast("error", "Oturum Bulunamadı", "Lütfen tekrar giriş yap.");
+      // kısa gecikmeyle yönlendir (toast görülsün)
+      setTimeout(() => navigate("/OgrenciGiris"), 900);
+      return;
+    }
+
+    const secilenAyEvresi = ayEvreleri.find(ev => ev.deger === formData.ayEvresi);
+
+    const tarihISO = formData.tarih;
+
+    const gunlukDoc = {
+      studentId,
+      tarihISO,
+      dateString: tarihISO,
+      tarih: formatDisplayDate(tarihISO),
+
+      // ✅ kayıt içinde emoji/ad + tekrar açınca seçim için değer
+      ayEvresiDeger: formData.ayEvresi,
+      ayEvresi: secilenAyEvresi?.emoji || '🌑',
+      ayEvresiAd: secilenAyEvresi?.ad || 'Yeni Ay',
+
+      gozlem: (formData.gozlem || '').trim(),
+
+      updatedAt: serverTimestamp(),
+
+      // öğretmen alanları (ilk kayıtta 0, güncellemede korunacak şekilde merge yapacağız)
+      ogretmenYildizi: 0,
+      ogretmenYorumu: "",
+      yildizVerilmeTarihi: null
+    };
+
+    try {
+      setSaving(true);
+
+      const colRef = collection(db, "gunlukler", studentId, "items");
+
+      // ✅ aynı tarih var mı?
+      const qRef = query(colRef, where("dateString", "==", tarihISO), limit(1));
+      const snap = await getDocs(qRef);
+
+      if (!snap.empty) {
+        // ✅ Mevcut günlüğü GÜNCELLE
+        
+        // ✅ ÖNEMLİ: Güncellenen günlük kilitli mi? (yıldız > 0)
+        const existingData = snap.docs[0].data() || {};
+        const existingYildiz = Number(existingData.ogretmenYildizi || 0);
+        
+        if (existingYildiz > 0) {
+          // Kilitli günlük - sadece düzenleme izni var, yeni kayıt değil
+          showToast(
+            "info",
+            "Güncelleme Modu",
+            "Bu günlük yıldız aldığı için güncelleniyor. Yıldız bilgisi korunacak."
+          );
+        }
+
+        const existingId = snap.docs[0].id;
+
+        // Öğretmenin yıldız/yorum verdiği alanları ezmeyelim diye önce mevcut veriyi alıp sadece gerekli alanları güncelliyoruz
+        const prevData = existingData;
+
+        await updateDoc(doc(db, "gunlukler", studentId, "items", existingId), {
+          ...gunlukDoc,
+          // createdAt'ı koru
+          createdAt: prevData.createdAt || serverTimestamp(),
+          // öğretmen alanlarını koru (varsa)
+          ogretmenYildizi: prevData.ogretmenYildizi ?? 0,
+          ogretmenYorumu: prevData.ogretmenYorumu ?? "",
+          yildizVerilmeTarihi: prevData.yildizVerilmeTarihi ?? null
+        });
+
+        setExistingDocId(existingId);
+
+        showToast(
+          "success",
+          "Günlük Güncellendi ✅",
+          `Tarih: ${formatDisplayDate(tarihISO)} • Ay: ${secilenAyEvresi?.ad || ""}`,
+          3000
+        );
+
+      } else {
+        // ✅ Yeni kayıt
+        
+        // ✅ SON KONTROL: Kilit tekrar kontrol (race condition için)
+        if (tarihKilitli) {
+          showToast(
+            "error",
+            "Kayıt Engellendi 🔒",
+            "Bu tarihte yıldızlı günlük olduğu için yeni kayıt yapılamaz."
+          );
+          setSaving(false);
+          return;
+        }
+
+        await addDoc(colRef, {
+          ...gunlukDoc,
+          createdAt: serverTimestamp()
+        });
+
+        setExistingDocId(null); // addDoc id'yi bilmesek de sorun değil; tekrar açınca yakalayacak
+
+        showToast(
+          "success",
+          "Günlük Kaydedildi ✅",
+          `Tarih: ${formatDisplayDate(tarihISO)} • Ay: ${secilenAyEvresi?.ad || ""}`,
+          3000
+        );
+      }
+
+      // ✅ otomatik yönlendirme (toast görünsün)
+      setTimeout(() => {
+        navigate('/OgrenciDashboard');
+      }, 1500);
+
+    } catch (err) {
+      console.log("Günlük kaydedilemedi:", err);
+      showToast(
+        "error",
+        "Kayıt Başarısız ❌",
+        "Günlük kaydedilemedi. (Firestore izinleri / rules)"
+      );
+    } finally {
+      setSaving(false);
+    }
   };
+
+  const toastTheme = {
+    success: {
+      ring: "border-yellow-500/40",
+      badge: "bg-yellow-500",
+      title: "text-white",
+      msg: "text-gray-200"
+    },
+    error: {
+      ring: "border-red-500/40",
+      badge: "bg-red-500",
+      title: "text-white",
+      msg: "text-gray-200"
+    },
+    info: {
+      ring: "border-blue-500/40",
+      badge: "bg-blue-500",
+      title: "text-white",
+      msg: "text-gray-200"
+    }
+  };
+
+  const t = toastTheme[toast.type] || toastTheme.info;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
+      {/* ✅ TOAST */}
+      {toast.open && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-xl">
+          <div className={`bg-gray-900/90 backdrop-blur-md border ${t.ring} rounded-2xl shadow-xl px-5 py-4`}>
+            <div className="flex items-start gap-3">
+              <div className={`w-3 h-3 rounded-full mt-2 ${t.badge}`} />
+              <div className="flex-1">
+                <div className={`font-bold ${t.title}`}>{toast.title}</div>
+                {toast.message && (
+                  <div className={`text-sm mt-1 ${t.msg}`}>{toast.message}</div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="py-6 bg-gray-900/50 backdrop-blur-sm border-b border-gray-800">
         <div className="container mx-auto px-4">
@@ -143,10 +391,10 @@ function YeniGunluk() {
                 Ay Günlüğü - 2026
               </h1>
             </div>
-            
+
             <div className="flex items-center space-x-4">
-              <Link 
-                to="/OgrenciDashboard" 
+              <Link
+                to="/OgrenciDashboard"
                 className="flex items-center text-gray-300 hover:text-white transition-colors px-4 py-2 hover:bg-gray-800 rounded-lg"
               >
                 <FaArrowLeft className="mr-2" />
@@ -170,6 +418,11 @@ function YeniGunluk() {
             </h1>
             <p className="text-gray-300">
               Tarih: <span className="text-yellow-300 font-semibold">{formatDisplayDate(formData.tarih)}</span>
+              {tarihKilitli && (
+                <span className="ml-3 inline-flex items-center px-3 py-1 rounded-full bg-red-900/40 text-red-300 text-sm">
+                  <FaLock className="mr-1" size={12} /> Kilitli
+                </span>
+              )}
             </p>
           </div>
 
@@ -178,12 +431,17 @@ function YeniGunluk() {
             <div className="lg:col-span-2">
               <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 md:p-8 border border-gray-700">
                 <form onSubmit={handleSubmit} className="space-y-8">
-                  
+
                   {/* Tarih */}
                   <div>
                     <label className="block text-gray-300 mb-3 text-lg font-semibold flex items-center">
                       <FaCalendarAlt className="mr-2 text-yellow-400" />
                       Gözlem Tarihi (2026)
+                      {tarihKilitli && (
+                        <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full bg-red-900/40 text-red-300 text-xs">
+                          <FaLock className="mr-1" size={10} /> Kilitli
+                        </span>
+                      )}
                     </label>
                     <div className="flex items-center space-x-4">
                       <input
@@ -193,15 +451,28 @@ function YeniGunluk() {
                         onChange={handleChange}
                         min="2026-01-01"
                         max="2026-12-31"
-                        className="flex-1 px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-yellow-500 transition-colors"
+                        className={`flex-1 px-4 py-3 bg-gray-900 border rounded-lg text-white focus:outline-none transition-colors ${
+                          tarihKilitli 
+                            ? 'border-red-700/60 cursor-not-allowed bg-gray-800/60' 
+                            : 'border-gray-700 focus:border-yellow-500'
+                        }`}
                         required
+                        disabled={saving || tarihKilitli}
+                        title={tarihKilitli ? "Bu tarihte yıldızlı günlük var. Yeni günlük yazamazsınız." : ""}
                       />
-                      <div className="text-sm text-gray-400 bg-gray-900/50 px-3 py-2 rounded-lg">
-                        📅 2026 Yılı
+                      <div className={`text-sm px-3 py-2 rounded-lg ${
+                        tarihKilitli ? 'bg-red-900/30 text-red-300' : 'bg-gray-900/50 text-gray-400'
+                      }`}>
+                        {tarihKilitli ? '🔒 Kilitli Tarih' : '📅 2026 Yılı'}
                       </div>
                     </div>
                     <p className="text-gray-400 text-sm mt-2">
                       Seçili tarih: <span className="text-yellow-300">{formatDisplayDate(formData.tarih)}</span>
+                      {tarihKilitli && (
+                        <span className="ml-3 text-red-400">
+                          ⚠️ Bu tarihte yıldızlı günlük var
+                        </span>
+                      )}
                     </p>
                   </div>
 
@@ -215,8 +486,14 @@ function YeniGunluk() {
                         <button
                           key={evre.deger}
                           type="button"
-                          onClick={() => setFormData(prev => ({ ...prev, ayEvresi: evre.deger }))}
-                          className={`p-4 rounded-xl border-2 flex flex-col items-center justify-center transition-all transform hover:scale-105 ${formData.ayEvresi === evre.deger ? 'border-yellow-500 bg-yellow-500/10 scale-105' : 'border-gray-700 hover:border-gray-500 hover:bg-gray-700/30'}`}
+                          onClick={() => !saving && setFormData(prev => ({ ...prev, ayEvresi: evre.deger }))}
+                          className={`p-4 rounded-xl border-2 flex flex-col items-center justify-center transition-all transform hover:scale-105 ${
+                            formData.ayEvresi === evre.deger 
+                              ? 'border-yellow-500 bg-yellow-500/10 scale-105' 
+                              : 'border-gray-700 hover:border-gray-500 hover:bg-gray-700/30'
+                          } ${tarihKilitli && !existingDocId ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          disabled={saving || (tarihKilitli && !existingDocId)}
+                          title={tarihKilitli && !existingDocId ? "Bu tarih kilitli, yeni günlük yazamazsınız" : ""}
                         >
                           <span className="text-3xl mb-2">{evre.emoji}</span>
                           <span className="text-xs text-gray-300">{evre.ad}</span>
@@ -229,6 +506,14 @@ function YeniGunluk() {
                           Seçilen: <span className="text-yellow-300 font-semibold">
                             {ayEvreleri.find(e => e.deger === formData.ayEvresi)?.emoji} {ayEvreleri.find(e => e.deger === formData.ayEvresi)?.ad}
                           </span>
+                        </p>
+                      </div>
+                    )}
+                    {tarihKilitli && !existingDocId && (
+                      <div className="mt-3 p-3 bg-red-900/20 rounded-lg border-l-4 border-red-600">
+                        <p className="text-red-300 text-sm">
+                          <FaLock className="inline mr-1" size={12} />
+                          Bu tarih kilitli. Mevcut günlüğü düzenleyebilirsiniz, ancak yeni günlük yazamazsınız.
                         </p>
                       </div>
                     )}
@@ -248,8 +533,16 @@ function YeniGunluk() {
                       name="gozlem"
                       value={formData.gozlem}
                       onChange={handleChange}
-                      className="w-full h-48 px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-yellow-500 transition-colors resize-none"
-                      placeholder="Gözlem notlarınızı yazın (zorunlu değil)..."
+                      className={`w-full h-48 px-4 py-3 bg-gray-900 border rounded-lg text-white focus:outline-none transition-colors resize-none ${
+                        tarihKilitli && !existingDocId
+                          ? 'border-gray-600 cursor-not-allowed bg-gray-800/60'
+                          : 'border-gray-700 focus:border-yellow-500'
+                      }`}
+                      placeholder={tarihKilitli && !existingDocId 
+                        ? "Bu tarih kilitli. Yeni günlük yazamazsınız." 
+                        : "Gözlem notlarınızı yazın (zorunlu değil)..."
+                      }
+                      disabled={saving || (tarihKilitli && !existingDocId)}
                     />
                     <div className="flex justify-between mt-2">
                       <p className="text-gray-400 text-sm">
@@ -258,38 +551,50 @@ function YeniGunluk() {
                       <button
                         type="button"
                         onClick={() => {
+                          if (saving || (tarihKilitli && !existingDocId)) return;
                           setFormData(prev => ({ ...prev, gozlem: '' }));
                           setKarakterSayisi(0);
-                          alert("Gözlem notları temizlendi.");
+                          showToast("info", "Temizlendi", "Gözlem notları temizlendi.");
                         }}
-                        className="text-gray-400 hover:text-white text-sm"
+                        className={`text-sm ${tarihKilitli && !existingDocId ? 'text-gray-600 cursor-not-allowed' : 'text-gray-400 hover:text-white'}`}
+                        disabled={saving || (tarihKilitli && !existingDocId)}
                       >
                         Temizle
                       </button>
                     </div>
                   </div>
 
-                  {/* Demo ve Kaydet Butonları */}
-                  <div className="space-y-4">
+                  {/* Kaydet Butonu */}
+                  <div className="pt-4">
                     <button
-                      type="button"
-                      onClick={handleDemoDoldur}
-                      className="w-full py-3 bg-gradient-to-r from-green-900/50 to-blue-900/50 text-green-300 font-semibold rounded-lg hover:from-green-900/70 hover:to-blue-900/70 transition-colors border border-green-700/50 transform hover:scale-[1.02]"
+                      type="submit"
+                      disabled={!formData.ayEvresi || saving || (tarihKilitli && !existingDocId)}
+                      className={`w-full py-4 text-white font-bold rounded-lg transition-all transform hover:scale-[1.02] active:scale-95 text-lg ${
+                        (!formData.ayEvresi || saving || (tarihKilitli && !existingDocId))
+                          ? 'bg-gradient-to-r from-gray-700 to-gray-800 cursor-not-allowed'
+                          : 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600'
+                      }`}
+                      title={tarihKilitli && !existingDocId ? "Bu tarih kilitli. Yeni günlük yazamazsınız." : ""}
                     >
-                      📋 Demo Bilgilerini Doldur
+                      <FaSave className="inline mr-2" />
+                      {saving
+                        ? '⏳ Kaydediliyor...'
+                        : (tarihKilitli && !existingDocId
+                          ? '🔒 TARİH KİLİTLİ'
+                          : (!formData.ayEvresi
+                            ? '❌ Ay Evresi Seçilmedi'
+                            : (existingDocId ? '✅ GÜNLÜĞÜ GÜNCELLE' : '✅ GÜNLÜĞÜ KAYDET')
+                          )
+                        )
+                      }
                     </button>
-
-                    <div className="pt-4">
-                      <button
-                        type="submit"
-                        disabled={!formData.ayEvresi}
-                        className={`w-full py-4 text-white font-bold rounded-lg transition-all transform hover:scale-[1.02] active:scale-95 text-lg ${!formData.ayEvresi ? 'bg-gradient-to-r from-gray-700 to-gray-800 cursor-not-allowed' : 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600'}`}
-                      >
-                        <FaSave className="inline mr-2" />
-                        {!formData.ayEvresi ? '❌ Ay Evresi Seçilmedi' : '✅ GÜNLÜĞÜ KAYDET'}
-                      </button>
-                    </div>
+                    {tarihKilitli && !existingDocId && (
+                      <p className="text-red-400 text-sm mt-2 text-center">
+                        <FaLock className="inline mr-1" /> Bu tarihte {existingDocId ? 'mevcut' : 'yıldızlı'} günlük var. Yeni günlük yazamazsınız.
+                      </p>
+                    )}
                   </div>
+
                 </form>
               </div>
             </div>
@@ -319,7 +624,7 @@ function YeniGunluk() {
                   </li>
                 </ul>
               </div>
-              
+
               {/* Yıldız Bilgisi */}
               <div className="bg-yellow-900/30 rounded-xl p-6 border border-yellow-700/50">
                 <h3 className="text-xl font-bold text-white mb-3">
@@ -336,6 +641,17 @@ function YeniGunluk() {
                   </div>
                   <p className="text-gray-400 text-xs mt-2">1-5 arası yıldız alabilirsin</p>
                 </div>
+                
+                {/* ✅ KİLİT BİLGİSİ */}
+                {tarihKilitli && (
+                  <div className="mt-4 p-3 bg-red-900/20 rounded-lg border border-red-700/30">
+                    <p className="text-red-300 text-xs">
+                      <FaLock className="inline mr-1" size={10} />
+                      <strong>Kilitli Tarih:</strong> Bu tarihte yıldızlı günlük var. 
+                      Yeni günlük yazamazsınız, ancak mevcut günlüğü düzenleyebilirsiniz.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
