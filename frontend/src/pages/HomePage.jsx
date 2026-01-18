@@ -283,7 +283,7 @@ const HomePage = () => {
       {/* Footer */}
       <div className="max-w-6xl mx-auto px-6 py-6">
         <div className="text-center text-gray-500 text-xs">
-          <p>Ay Günlüğü • Öğrenci ve Öğretmen Platformu • {new Date().getFullYear()}</p>
+          <p>Ay Günlüğü • Öğrenci ve Öğretmen Platformu •Candemir Yurdagül tarafından tasarlanmıştır. {new Date().getFullYear()}</p>
           <p className="text-gray-600 text-xs mt-1">
             Ay hakkında bilgi edin, gözlemlerini kaydet, öğretmenlerinden yıldız kazan!
           </p>

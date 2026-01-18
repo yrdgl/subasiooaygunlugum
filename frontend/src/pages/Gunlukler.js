@@ -1003,7 +1003,7 @@ function Gunlukler() {
       <footer className="py-4 lg:py-8 border-t border-gray-800 mt-6 lg:mt-12">
         <div className="container mx-auto px-4 text-center">
           <p className="text-gray-400 text-sm lg:text-base">
-            © 2026 Ay Günlüğü - Günlük Yönetimi
+            © 2026 Ay Günlüğü - Günlük Yönetimi-Candemir Yurdagül
           </p>
           <p className="text-gray-500 text-xs lg:text-sm mt-1 lg:mt-2">
             Öğretmen yıldızlarını görmek için günlüklere tıklayın
