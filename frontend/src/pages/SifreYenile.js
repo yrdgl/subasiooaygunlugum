@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { confirmPasswordReset, auth } from "../lib/firebase";
@@ -186,6 +187,7 @@ function SifreYenile() {
         <div className="container mx-auto px-4 text-center text-gray-400 text-sm">
           © {new Date().getFullYear()} Ay Günlüğü - Subaşı Ortaokulu
         </div>
+<p className="text-gray-400 text-sm mt-2 font-medium">Created by Candemir Yurdagül</p>
       </footer>
     </div>
   );

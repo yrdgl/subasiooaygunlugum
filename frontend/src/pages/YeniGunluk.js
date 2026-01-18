@@ -508,8 +508,8 @@ function YeniGunluk() {
       <footer className="py-4 lg:py-8 border-t border-gray-800 mt-6 lg:mt-12">
         <div className="container mx-auto px-4 text-center">
           <p className="text-gray-400 text-sm lg:text-base">
-            © 2026 Ay Günlüğü - Yeni Gözlem Kaydı(Candemir Yurdagül)
-          </p>
+            © 2026 Ay Günlüğü - Yeni Gözlem Kaydı          </p>
+<p className="text-gray-400 text-sm mt-2 font-medium">Created by Candemir Yurdagül</p>
           <p className="text-gray-500 text-xs lg:text-sm mt-1 lg:mt-2">
             Her akşam gökyüzüne bak ve ay gözlemlerini kaydet!
           </p>

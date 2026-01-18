@@ -528,8 +528,9 @@ function OgrenciKayit() {
       <footer className="py-8 border-t border-gray-800 mt-12">
         <div className="container mx-auto px-4 text-center">
           <p className="text-gray-400">
-            © {new Date().getFullYear()} Ay Günlüğü - 5. Sınıflar Özel© Candemir Yurdagül tarafından tasarlanmıştır
+            © {new Date().getFullYear()} Ay Günlüğü - 5. Sınıflar Özel
           </p>
+<p className="text-gray-400 text-sm mt-2 font-medium">Created by Candemir Yurdagül</p>
           <p className="text-gray-500 text-sm mt-2">
             Bu platform 5. sınıf öğrencilerinin astronomi gözlemlerini kaydetmesi için tasarlanmıştır.
           </p>

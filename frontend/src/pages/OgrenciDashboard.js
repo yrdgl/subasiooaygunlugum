@@ -350,9 +350,7 @@ function OgrenciDashboard() {
           <p className="text-gray-400 text-sm lg:text-base">
             © {new Date().getFullYear()} Ay Günlüğü - Öğrenci Dashboard
           </p>
-          <p className="text-gray-500 text-xs lg:text-sm mt-2">
-            Öğretmen yıldızları ile motivasyonunu artır!
-          </p>
+          <p className="text-gray-400 text-sm mt-2 font-medium">Created by Candemir Yurdagül</p>
         </div>
       </footer>
     </div>
