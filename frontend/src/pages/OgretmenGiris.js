@@ -221,7 +221,7 @@ function OgretmenGiris() {
         {/* Footer */}
         <div className="mt-6 text-center">
           <p className="text-xs text-gray-600">
-            Ay Günlüğü • Öğretmen Paneli v1.0 • {new Date().getFullYear()}
+            Ay Günlüğü • Öğretmen Paneli v1.0 (Candemir Yurdagül)• {new Date().getFullYear()}
           </p>
           <p className="text-xs text-gray-700 mt-1">
             🔒 Firebase Authentication ile korunmaktadır
