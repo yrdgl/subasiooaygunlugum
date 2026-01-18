@@ -288,7 +288,7 @@ function AyTakvimi() {
       {/* Footer */}
       <footer className="py-8 border-t border-gray-800 mt-12">
         <div className="container mx-auto px-4 text-center">
-          <p className="text-gray-400">© 2026–2028 Ay Günlüğü - Ay Takvimi</p>
+          <p className="text-gray-400">© 2026–2028 Ay Günlüğü - Ay Takvimi-Candemir Yurdagül</p>
         </div>
       </footer>
     </div>
