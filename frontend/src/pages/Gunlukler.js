@@ -450,7 +450,6 @@ function Gunlukler() {
         <button onClick={() => setExpandedCard(gunluk.id)} className="text-blue-400 text-xs flex items-center">
           <FaChevronDown className="mr-1" /> Detaylar
         </button>
-        <span className="text-xs text-gray-500 text-right">ID: {gunluk.firestoreId?.substring(0, 8)}...</span>
       </div>
     </div>
   );
