@@ -348,8 +348,7 @@ function OgretmenDashboard() {
             </div>
           </div>
           <div className="mt-4 hidden lg:flex flex-wrap gap-4">
-            <a href="/" className="text-gray-400 hover:text-white transition-colors text-sm sm:text-base">← Ana Sayfa</a>
-            <button onClick={handleLogout} className="text-gray-400 hover:text-white transition-colors text-sm sm:text-base">Çıkış Yap</button>
+           <button onClick={handleLogout} className="text-gray-400 hover:text-white transition-colors text-sm sm:text-base">Çıkış Yap</button>
           </div>
         </header>
 
